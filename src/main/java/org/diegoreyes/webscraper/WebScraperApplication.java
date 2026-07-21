@@ -16,14 +16,11 @@ import java.util.Locale;
 
 public final class WebScraperApplication {
 
-    private static final URI FALABELLA_URL =
-            URI.create(
-                    "https://www.falabella.com/"
-                            + "falabella-cl/category/"
-                            + "cat40052/Computadores"
-            );
+    private static final URI FALABELLA_URL = URI.create(
+            "https://www.falabella.com/falabella-cl/category/cat40052/Computadores"
+    );
 
-    private static final NumberFormat PRICE_FORMAT =
+    private static final NumberFormat CHILEAN_PRICE_FORMAT =
             NumberFormat.getIntegerInstance(
                     Locale.forLanguageTag("es-CL")
             );
@@ -32,59 +29,52 @@ public final class WebScraperApplication {
     }
 
     public static void main(String[] args) {
+        ProductScraperService scraperService =
+                createScraperService();
+
+        try {
+            List<Product> products =
+                    scraperService.scrape(FALABELLA_URL);
+
+            printProducts(products);
+
+        } catch (IOException exception) {
+            printDownloadError(exception);
+        }
+    }
+
+    private static ProductScraperService createScraperService() {
         HtmlClient htmlClient =
                 new JsoupHtmlClient();
 
         ProductParser productParser =
                 new FalabellaProductParser();
 
-        ProductScraperService scraperService =
-                new ProductScraperService(
-                        htmlClient,
-                        productParser
-                );
-
-        try {
-            List<Product> products =
-                    scraperService.scrape(
-                            FALABELLA_URL
-                    );
-
-            printProducts(products);
-
-        } catch (IOException exception) {
-            System.err.println(
-                    "Unable to download the Falabella page: "
-                            + exception.getMessage()
-            );
-        }
+        return new ProductScraperService(
+                htmlClient,
+                productParser
+        );
     }
 
-    private static void printProducts(
-            List<Product> products
-    ) {
+    private static void printProducts(List<Product> products) {
         if (products.isEmpty()) {
             System.out.println(
                     "No products were found."
             );
-
             return;
         }
 
-        System.out.println(
-                "Products found: " + products.size()
+        products.forEach(
+                WebScraperApplication::printProduct
         );
 
         System.out.println();
-
-        for (Product product : products) {
-            printProduct(product);
-        }
+        System.out.println(
+                "Products found: " + products.size()
+        );
     }
 
-    private static void printProduct(
-            Product product
-    ) {
+    private static void printProduct(Product product) {
         System.out.println(
                 "Store: " + product.getStore()
         );
@@ -95,57 +85,66 @@ public final class WebScraperApplication {
 
         System.out.println(
                 "Price: "
-                        + formatPrice(
-                        product.getPrice()
+                        + formatPrice(product.getPrice())
+        );
+
+        System.out.println(
+                "Previous price: "
+                        + formatOptionalPrice(
+                        product.getPreviousPrice()
                 )
         );
 
-        if (product.getPreviousPrice() != null) {
-            System.out.println(
-                    "Previous price: "
-                            + formatPrice(
-                            product.getPreviousPrice()
-                    )
-            );
-        } else {
-            System.out.println(
-                    "Previous price: Not available"
-            );
-        }
-
-        if (product.getDiscount() != null) {
-            System.out.println(
-                    "Discount: "
-                            + product.getDiscount()
-            );
-        } else {
-            System.out.println(
-                    "Discount: Not available"
-            );
-        }
-
-        if (product.getSourceUrl() != null) {
-            System.out.println(
-                    "Source URL: "
-                            + product.getSourceUrl()
-            );
-        } else {
-            System.out.println(
-                    "Source URL: Not available"
-            );
-        }
+        System.out.println(
+                "Discount: "
+                        + formatOptionalText(
+                        product.getDiscount()
+                )
+        );
 
         System.out.println(
-                "--------------------------------"
+                "Source URL: "
+                        + formatOptionalText(
+                        product.getSourceUrl()
+                )
+        );
+
+        System.out.println(
+                "----------------------------------------"
         );
     }
 
-    private static String formatPrice(
+    private static String formatPrice(BigDecimal price) {
+        return "$"
+                + CHILEAN_PRICE_FORMAT.format(price);
+    }
+
+    private static String formatOptionalPrice(
             BigDecimal price
     ) {
-        return "$"
-                + PRICE_FORMAT.format(
-                price.toBigInteger()
+        if (price == null) {
+            return "Not available";
+        }
+
+        return formatPrice(price);
+    }
+
+    private static String formatOptionalText(
+            String value
+    ) {
+        if (value == null || value.isBlank()) {
+            return "Not available";
+        }
+
+        return value;
+    }
+
+    private static void printDownloadError(
+            IOException exception
+    ) {
+        System.err.println(
+                "Unable to download the Falabella page: "
+                        + exception.getMessage()
         );
     }
 }

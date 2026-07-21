@@ -178,18 +178,17 @@ class ProductTest {
 
     @Test
     void shouldRejectNullStore() {
-        InvalidProductException exception =
-                assertThrows(
-                        InvalidProductException.class,
-                        () -> new Product(
-                                null,
-                                NAME,
-                                PRICE,
-                                PREVIOUS_PRICE,
-                                DISCOUNT,
-                                SOURCE_URL
-                        )
-                );
+        InvalidProductException exception = assertThrows(
+                InvalidProductException.class,
+                () -> new Product(
+                        null,
+                        NAME,
+                        PRICE,
+                        PREVIOUS_PRICE,
+                        DISCOUNT,
+                        SOURCE_URL
+                )
+        );
 
         assertEquals(
                 "Store must not be blank",
@@ -199,18 +198,17 @@ class ProductTest {
 
     @Test
     void shouldRejectBlankStore() {
-        InvalidProductException exception =
-                assertThrows(
-                        InvalidProductException.class,
-                        () -> new Product(
-                                "   ",
-                                NAME,
-                                PRICE,
-                                PREVIOUS_PRICE,
-                                DISCOUNT,
-                                SOURCE_URL
-                        )
-                );
+        InvalidProductException exception = assertThrows(
+                InvalidProductException.class,
+                () -> new Product(
+                        "   ",
+                        NAME,
+                        PRICE,
+                        PREVIOUS_PRICE,
+                        DISCOUNT,
+                        SOURCE_URL
+                )
+        );
 
         assertEquals(
                 "Store must not be blank",
@@ -220,18 +218,17 @@ class ProductTest {
 
     @Test
     void shouldRejectNullName() {
-        InvalidProductException exception =
-                assertThrows(
-                        InvalidProductException.class,
-                        () -> new Product(
-                                STORE,
-                                null,
-                                PRICE,
-                                PREVIOUS_PRICE,
-                                DISCOUNT,
-                                SOURCE_URL
-                        )
-                );
+        InvalidProductException exception = assertThrows(
+                InvalidProductException.class,
+                () -> new Product(
+                        STORE,
+                        null,
+                        PRICE,
+                        PREVIOUS_PRICE,
+                        DISCOUNT,
+                        SOURCE_URL
+                )
+        );
 
         assertEquals(
                 "Product name must not be blank",
@@ -241,18 +238,17 @@ class ProductTest {
 
     @Test
     void shouldRejectBlankName() {
-        InvalidProductException exception =
-                assertThrows(
-                        InvalidProductException.class,
-                        () -> new Product(
-                                STORE,
-                                "   ",
-                                PRICE,
-                                PREVIOUS_PRICE,
-                                DISCOUNT,
-                                SOURCE_URL
-                        )
-                );
+        InvalidProductException exception = assertThrows(
+                InvalidProductException.class,
+                () -> new Product(
+                        STORE,
+                        "   ",
+                        PRICE,
+                        PREVIOUS_PRICE,
+                        DISCOUNT,
+                        SOURCE_URL
+                )
+        );
 
         assertEquals(
                 "Product name must not be blank",
@@ -262,18 +258,17 @@ class ProductTest {
 
     @Test
     void shouldRejectNullPrice() {
-        InvalidProductException exception =
-                assertThrows(
-                        InvalidProductException.class,
-                        () -> new Product(
-                                STORE,
-                                NAME,
-                                null,
-                                PREVIOUS_PRICE,
-                                DISCOUNT,
-                                SOURCE_URL
-                        )
-                );
+        InvalidProductException exception = assertThrows(
+                InvalidProductException.class,
+                () -> new Product(
+                        STORE,
+                        NAME,
+                        null,
+                        PREVIOUS_PRICE,
+                        DISCOUNT,
+                        SOURCE_URL
+                )
+        );
 
         assertEquals(
                 "Price must be greater than or equal to zero",
@@ -283,18 +278,17 @@ class ProductTest {
 
     @Test
     void shouldRejectNegativePrice() {
-        InvalidProductException exception =
-                assertThrows(
-                        InvalidProductException.class,
-                        () -> new Product(
-                                STORE,
-                                NAME,
-                                new BigDecimal("-1"),
-                                PREVIOUS_PRICE,
-                                DISCOUNT,
-                                SOURCE_URL
-                        )
-                );
+        InvalidProductException exception = assertThrows(
+                InvalidProductException.class,
+                () -> new Product(
+                        STORE,
+                        NAME,
+                        new BigDecimal("-1"),
+                        PREVIOUS_PRICE,
+                        DISCOUNT,
+                        SOURCE_URL
+                )
+        );
 
         assertEquals(
                 "Price must be greater than or equal to zero",
@@ -304,18 +298,17 @@ class ProductTest {
 
     @Test
     void shouldRejectNegativePreviousPrice() {
-        InvalidProductException exception =
-                assertThrows(
-                        InvalidProductException.class,
-                        () -> new Product(
-                                STORE,
-                                NAME,
-                                PRICE,
-                                new BigDecimal("-1"),
-                                DISCOUNT,
-                                SOURCE_URL
-                        )
-                );
+        InvalidProductException exception = assertThrows(
+                InvalidProductException.class,
+                () -> new Product(
+                        STORE,
+                        NAME,
+                        PRICE,
+                        new BigDecimal("-1"),
+                        DISCOUNT,
+                        SOURCE_URL
+                )
+        );
 
         assertEquals(
                 "Previous price must be greater than or equal to zero",
@@ -324,12 +317,9 @@ class ProductTest {
     }
 
     @Test
-    void shouldBeEqualWhenFieldsAreEqual() {
-        Product firstProduct =
-                createProduct(SOURCE_URL);
-
-        Product secondProduct =
-                createProduct(SOURCE_URL);
+    void shouldBeEqualWhenAllFieldsAreEqual() {
+        Product firstProduct = createProduct();
+        Product secondProduct = createProduct();
 
         assertAll(
                 () -> assertEquals(
@@ -344,32 +334,181 @@ class ProductTest {
     }
 
     @Test
-    void shouldBeEqualWhenBothUrlsAreNull() {
-        Product firstProduct =
-                createProduct(null);
+    void shouldBeEqualToItself() {
+        Product product = createProduct();
 
-        Product secondProduct =
-                createProduct(null);
+        assertEquals(
+                product,
+                product
+        );
+    }
 
-        assertAll(
-                () -> assertEquals(
-                        firstProduct,
-                        secondProduct
-                ),
-                () -> assertEquals(
-                        firstProduct.hashCode(),
-                        secondProduct.hashCode()
-                )
+    @Test
+    void shouldNotBeEqualToNull() {
+        Product product = createProduct();
+
+        assertNotEquals(
+                product,
+                null
+        );
+    }
+
+    @Test
+    void shouldNotBeEqualToAnotherType() {
+        Product product = createProduct();
+
+        assertNotEquals(
+                product,
+                "Product"
+        );
+    }
+
+    @Test
+    void shouldNotBeEqualWhenStoreIsDifferent() {
+        Product differentProduct = new Product(
+                "Ripley",
+                NAME,
+                PRICE,
+                PREVIOUS_PRICE,
+                DISCOUNT,
+                SOURCE_URL
+        );
+
+        assertNotEquals(
+                createProduct(),
+                differentProduct
+        );
+    }
+
+    @Test
+    void shouldNotBeEqualWhenNameIsDifferent() {
+        Product differentProduct = new Product(
+                STORE,
+                "Notebook HP",
+                PRICE,
+                PREVIOUS_PRICE,
+                DISCOUNT,
+                SOURCE_URL
+        );
+
+        assertNotEquals(
+                createProduct(),
+                differentProduct
+        );
+    }
+
+    @Test
+    void shouldNotBeEqualWhenPriceIsDifferent() {
+        Product differentProduct = new Product(
+                STORE,
+                NAME,
+                new BigDecimal("399990"),
+                PREVIOUS_PRICE,
+                DISCOUNT,
+                SOURCE_URL
+        );
+
+        assertNotEquals(
+                createProduct(),
+                differentProduct
+        );
+    }
+
+    @Test
+    void shouldNotBeEqualWhenPreviousPriceIsDifferent() {
+        Product differentProduct = new Product(
+                STORE,
+                NAME,
+                PRICE,
+                new BigDecimal("699990"),
+                DISCOUNT,
+                SOURCE_URL
+        );
+
+        assertNotEquals(
+                createProduct(),
+                differentProduct
+        );
+    }
+
+    @Test
+    void shouldNotBeEqualWhenDiscountIsDifferent() {
+        Product differentProduct = new Product(
+                STORE,
+                NAME,
+                PRICE,
+                PREVIOUS_PRICE,
+                "-10%",
+                SOURCE_URL
+        );
+
+        assertNotEquals(
+                createProduct(),
+                differentProduct
         );
     }
 
     @Test
     void shouldNotBeEqualWhenSourceUrlIsDifferent() {
-        Product firstProduct =
-                createProduct(null);
+        Product differentProduct = new Product(
+                STORE,
+                NAME,
+                PRICE,
+                PREVIOUS_PRICE,
+                DISCOUNT,
+                "https://www.falabella.com/product/999"
+        );
 
-        Product secondProduct =
-                createProduct(SOURCE_URL);
+        assertNotEquals(
+                createProduct(),
+                differentProduct
+        );
+    }
+
+    @Test
+    void shouldBeEqualWhenAllOptionalFieldsAreNull() {
+        Product firstProduct = new Product(
+                STORE,
+                NAME,
+                PRICE,
+                null,
+                null,
+                null
+        );
+
+        Product secondProduct = new Product(
+                STORE,
+                NAME,
+                PRICE,
+                null,
+                null,
+                null
+        );
+
+        assertAll(
+                () -> assertEquals(
+                        firstProduct,
+                        secondProduct
+                ),
+                () -> assertEquals(
+                        firstProduct.hashCode(),
+                        secondProduct.hashCode()
+                )
+        );
+    }
+
+    @Test
+    void shouldNotBeEqualWhenFirstPreviousPriceIsNull() {
+        Product firstProduct = new Product(
+                STORE,
+                NAME,
+                PRICE,
+                null,
+                DISCOUNT,
+                SOURCE_URL
+        );
+
+        Product secondProduct = createProduct();
 
         assertNotEquals(
                 firstProduct,
@@ -378,25 +517,87 @@ class ProductTest {
     }
 
     @Test
-    void shouldNotBeEqualToNull() {
+    void shouldNotBeEqualWhenSecondPreviousPriceIsNull() {
+        Product firstProduct = createProduct();
+
+        Product secondProduct = new Product(
+                STORE,
+                NAME,
+                PRICE,
+                null,
+                DISCOUNT,
+                SOURCE_URL
+        );
+
         assertNotEquals(
-                createProduct(null),
-                null
+                firstProduct,
+                secondProduct
         );
     }
 
     @Test
-    void shouldNotBeEqualToAnotherType() {
+    void shouldNotBeEqualWhenFirstDiscountIsNull() {
+        Product firstProduct = new Product(
+                STORE,
+                NAME,
+                PRICE,
+                PREVIOUS_PRICE,
+                null,
+                SOURCE_URL
+        );
+
+        Product secondProduct = createProduct();
+
         assertNotEquals(
-                createProduct(null),
-                "Product"
+                firstProduct,
+                secondProduct
+        );
+    }
+
+    @Test
+    void shouldNotBeEqualWhenSecondDiscountIsNull() {
+        Product firstProduct = createProduct();
+
+        Product secondProduct = new Product(
+                STORE,
+                NAME,
+                PRICE,
+                PREVIOUS_PRICE,
+                null,
+                SOURCE_URL
+        );
+
+        assertNotEquals(
+                firstProduct,
+                secondProduct
+        );
+    }
+
+    @Test
+    void shouldNotBeEqualWhenFirstSourceUrlIsNull() {
+        Product firstProduct = createProduct(null);
+        Product secondProduct = createProduct();
+
+        assertNotEquals(
+                firstProduct,
+                secondProduct
+        );
+    }
+
+    @Test
+    void shouldNotBeEqualWhenSecondSourceUrlIsNull() {
+        Product firstProduct = createProduct();
+        Product secondProduct = createProduct(null);
+
+        assertNotEquals(
+                firstProduct,
+                secondProduct
         );
     }
 
     @Test
     void shouldContainProductDataInToString() {
-        String result =
-                createProduct(null).toString();
+        String result = createProduct().toString();
 
         assertAll(
                 () -> assertTrue(
@@ -406,21 +607,51 @@ class ProductTest {
                         result.contains(NAME)
                 ),
                 () -> assertTrue(
-                        result.contains(
-                                PRICE.toString()
-                        )
+                        result.contains(PRICE.toString())
                 ),
                 () -> assertTrue(
-                        result.contains(
-                                "sourceUrl='null'"
-                        )
+                        result.contains(PREVIOUS_PRICE.toString())
+                ),
+                () -> assertTrue(
+                        result.contains(DISCOUNT)
+                ),
+                () -> assertTrue(
+                        result.contains(SOURCE_URL)
                 )
         );
     }
 
-    private Product createProduct(
-            String sourceUrl
-    ) {
+    @Test
+    void shouldRepresentNullOptionalFieldsInToString() {
+        Product product = new Product(
+                STORE,
+                NAME,
+                PRICE,
+                null,
+                null,
+                null
+        );
+
+        String result = product.toString();
+
+        assertAll(
+                () -> assertTrue(
+                        result.contains("previousPrice=null")
+                ),
+                () -> assertTrue(
+                        result.contains("discount='null'")
+                ),
+                () -> assertTrue(
+                        result.contains("sourceUrl='null'")
+                )
+        );
+    }
+
+    private Product createProduct() {
+        return createProduct(SOURCE_URL);
+    }
+
+    private Product createProduct(String sourceUrl) {
         return new Product(
                 STORE,
                 NAME,

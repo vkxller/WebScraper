@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="
+             http://maven.apache.org/POM/4.0.0
+             https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>org.diegoreyes</groupId>
+  <artifactId>web-scraper</artifactId>
+  <version>1.0-SNAPSHOT</version>
+
+  <name>Web Scraper</name>
+  <description>
+    Product web scraper developed with Java 21,
+    Clean Architecture, JUnit 5 and Mockito.
+  </description>
+
+  <properties>
+    <maven.compiler.release>21</maven.compiler.release>
+
+    <project.build.sourceEncoding>
+      UTF-8
+    </project.build.sourceEncoding>
+
+    <project.reporting.outputEncoding>
+      UTF-8
+    </project.reporting.outputEncoding>
+
+    <jsoup.version>1.18.3</jsoup.version>
+    <junit.version>5.11.0</junit.version>
+    <mockito.version>5.14.2</mockito.version>
+    <jacoco.version>0.8.12</jacoco.version>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+
+      <!-- Manages compatible JUnit 5 versions -->
+      <dependency>
+        <groupId>org.junit</groupId>
+        <artifactId>junit-bom</artifactId>
+        <version>${junit.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+
+    </dependencies>
+  </dependencyManagement>
+
+  <dependencies>
+
+    <!-- HTML download and parsing -->
+    <dependency>
+      <groupId>org.jsoup</groupId>
+      <artifactId>jsoup</artifactId>
+      <version>${jsoup.version}</version>
+    </dependency>
+
+    <!-- JUnit 5 API, engine and parameterized tests -->
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- Mockito Core -->
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <version>${mockito.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- Mockito integration with JUnit 5 -->
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-junit-jupiter</artifactId>
+      <version>${mockito.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+  </dependencies>
+
+  <build>
+    <plugins>
+
+      <!-- Compile production code and tests with Java 21 -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.13.0</version>
+
+        <configuration>
+          <release>21</release>
+
+          <compilerArgs>
+            <arg>--add-modules</arg>
+            <arg>jdk.httpserver</arg>
+          </compilerArgs>
+        </configuration>
+      </plugin>
+
+      <!-- Execute JUnit 5 tests -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>3.3.0</version>
+
+        <configuration>
+          <useModulePath>false</useModulePath>
+
+          <!--
+          @{argLine} preserves the JaCoCo Java agent.
+          jdk.httpserver is required by JsoupHtmlClientTest.
+          -->
+          <argLine>
+            @{argLine} --add-modules jdk.httpserver
+          </argLine>
+        </configuration>
+      </plugin>
+
+      <!-- Generate and verify code coverage -->
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>${jacoco.version}</version>
+
+        <executions>
+
+          <!-- Attach JaCoCo agent before tests -->
+          <execution>
+            <id>prepare-agent</id>
+
+            <goals>
+              <goal>prepare-agent</goal>
+            </goals>
+          </execution>
+
+          <!-- Generate HTML report -->
+          <execution>
+            <id>generate-report</id>
+            <phase>verify</phase>
+
+            <goals>
+              <goal>report</goal>
+            </goals>
+          </execution>
+
+          <!-- Require 100% coverage in the domain core -->
+          <execution>
+            <id>check-domain-coverage</id>
+            <phase>verify</phase>
+
+            <goals>
+              <goal>check</goal>
+            </goals>
+
+            <configuration>
+              <rules>
+
+                <rule>
+                  <element>CLASS</element>
+
+                  <includes>
+                    <include>
+                      org.diegoreyes.webscraper.domain.*
+                    </include>
+                  </includes>
+
+                  <limits>
+
+                    <!-- 100% line coverage -->
+                    <limit>
+                      <counter>LINE</counter>
+                      <value>COVEREDRATIO</value>
+                      <minimum>1.00</minimum>
+                    </limit>
+
+                    <!-- 100% branch coverage -->
+                    <limit>
+                      <counter>BRANCH</counter>
+                      <value>COVEREDRATIO</value>
+                      <minimum>1.00</minimum>
+                    </limit>
+
+                  </limits>
+                </rule>
+
+              </rules>
+            </configuration>
+          </execution>
+
+        </executions>
+      </plugin>
+
+    </plugins>
+  </build>
+
+</project>

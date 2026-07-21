@@ -37,13 +37,18 @@ public final class Product {
                 "Price must be greater than or equal to zero"
         );
 
-        this.previousPrice = validatePreviousPrice(previousPrice);
-        this.discount = normalizeOptionalText(discount);
+        this.previousPrice =
+                validatePreviousPrice(previousPrice);
 
-        this.sourceUrl = validateRequiredText(
-                sourceUrl,
-                "Source URL must not be blank"
-        );
+        this.discount =
+                normalizeOptionalText(discount);
+
+        /*
+         * The product URL is currently optional because
+         * Falabella generates it dynamically using JavaScript.
+         */
+        this.sourceUrl =
+                normalizeOptionalText(sourceUrl);
     }
 
     private static String validateRequiredText(
@@ -51,7 +56,9 @@ public final class Product {
             String errorMessage
     ) {
         if (value == null || value.isBlank()) {
-            throw new InvalidProductException(errorMessage);
+            throw new InvalidProductException(
+                    errorMessage
+            );
         }
 
         return value.trim();
@@ -62,7 +69,9 @@ public final class Product {
             String errorMessage
     ) {
         if (value == null || value.signum() < 0) {
-            throw new InvalidProductException(errorMessage);
+            throw new InvalidProductException(
+                    errorMessage
+            );
         }
 
         return value;
@@ -84,7 +93,9 @@ public final class Product {
         return previousPrice;
     }
 
-    private static String normalizeOptionalText(String value) {
+    private static String normalizeOptionalText(
+            String value
+    ) {
         if (value == null || value.isBlank()) {
             return null;
         }
@@ -129,9 +140,18 @@ public final class Product {
         return store.equals(product.store)
                 && name.equals(product.name)
                 && price.equals(product.price)
-                && Objects.equals(previousPrice, product.previousPrice)
-                && Objects.equals(discount, product.discount)
-                && sourceUrl.equals(product.sourceUrl);
+                && Objects.equals(
+                previousPrice,
+                product.previousPrice
+        )
+                && Objects.equals(
+                discount,
+                product.discount
+        )
+                && Objects.equals(
+                sourceUrl,
+                product.sourceUrl
+        );
     }
 
     @Override

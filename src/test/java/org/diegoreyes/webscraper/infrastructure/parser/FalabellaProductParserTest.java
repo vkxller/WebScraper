@@ -20,12 +20,12 @@ class FalabellaProductParserTest {
     }
 
     @Test
-    void shouldParseCompleteProduct() {
+    void shouldParseCompleteProductWithoutSourceUrl() {
         String html = """
                 <html>
                 <body>
                     <div data-testid="ssr-pod">
-                        <a href="https://www.falabella.com/falabella-cl/product/123">
+                        <a href="">
                             <span class="pod-subTitle">
                                 Notebook Lenovo IdeaPad
                             </span>
@@ -47,11 +47,16 @@ class FalabellaProductParserTest {
                 </html>
                 """;
 
-        List<Product> products = parser.parse(html);
+        List<Product> products =
+                parser.parse(html);
 
-        assertEquals(1, products.size());
+        assertEquals(
+                1,
+                products.size()
+        );
 
-        Product product = products.getFirst();
+        Product product =
+                products.getFirst();
 
         assertAll(
                 () -> assertEquals(
@@ -74,8 +79,7 @@ class FalabellaProductParserTest {
                         "-17%",
                         product.getDiscount()
                 ),
-                () -> assertEquals(
-                        "https://www.falabella.com/falabella-cl/product/123",
+                () -> assertNull(
                         product.getSourceUrl()
                 )
         );
@@ -84,47 +88,43 @@ class FalabellaProductParserTest {
     @Test
     void shouldParseMultipleProducts() {
         String html = """
-                <html>
-                <body>
-                    <div data-testid="ssr-pod">
-                        <a href="https://www.falabella.com/product/111">
-                            <span class="pod-subTitle">
-                                Notebook HP
-                            </span>
+                <div data-testid="ssr-pod">
+                    <span class="pod-subTitle">
+                        Notebook HP
+                    </span>
 
-                            <span data-testid="final-price">
-                                $399.990
-                            </span>
-                        </a>
-                    </div>
+                    <span data-testid="final-price">
+                        $399.990
+                    </span>
+                </div>
 
-                    <div data-testid="ssr-pod">
-                        <a href="https://www.falabella.com/product/222">
-                            <span class="pod-subTitle">
-                                Notebook Asus
-                            </span>
+                <div data-testid="ssr-pod">
+                    <span class="pod-subTitle">
+                        Notebook Asus
+                    </span>
 
-                            <span data-testid="final-price">
-                                $749.990
-                            </span>
-                        </a>
-                    </div>
-                </body>
-                </html>
+                    <span data-testid="final-price">
+                        $749.990
+                    </span>
+                </div>
                 """;
 
-        List<Product> products = parser.parse(html);
+        List<Product> products =
+                parser.parse(html);
 
-        assertEquals(2, products.size());
-
-        assertEquals(
-                "Notebook HP",
-                products.get(0).getName()
-        );
-
-        assertEquals(
-                "Notebook Asus",
-                products.get(1).getName()
+        assertAll(
+                () -> assertEquals(
+                        2,
+                        products.size()
+                ),
+                () -> assertEquals(
+                        "Notebook HP",
+                        products.get(0).getName()
+                ),
+                () -> assertEquals(
+                        "Notebook Asus",
+                        products.get(1).getName()
+                )
         );
     }
 
@@ -132,123 +132,148 @@ class FalabellaProductParserTest {
     void shouldParseProductWithoutPreviousPrice() {
         String html = """
                 <div data-testid="ssr-pod">
-                    <a href="https://www.falabella.com/product/123">
-                        <span class="pod-subTitle">
-                            Notebook Lenovo
-                        </span>
+                    <span class="pod-subTitle">
+                        Notebook Lenovo
+                    </span>
 
-                        <span data-testid="final-price">
-                            $499.990
-                        </span>
+                    <span data-testid="final-price">
+                        $499.990
+                    </span>
 
-                        <span class="discount-badge-item">
-                            -10%
-                        </span>
-                    </a>
+                    <span class="discount-badge-item">
+                        -10%
+                    </span>
                 </div>
                 """;
 
-        List<Product> products = parser.parse(html);
+        Product product =
+                parser.parse(html).getFirst();
 
-        assertEquals(1, products.size());
-        assertNull(products.getFirst().getPreviousPrice());
-        assertEquals("-10%", products.getFirst().getDiscount());
+        assertAll(
+                () -> assertNull(
+                        product.getPreviousPrice()
+                ),
+                () -> assertEquals(
+                        "-10%",
+                        product.getDiscount()
+                ),
+                () -> assertNull(
+                        product.getSourceUrl()
+                )
+        );
     }
 
     @Test
     void shouldParseProductWithoutDiscount() {
         String html = """
                 <div data-testid="ssr-pod">
-                    <a href="https://www.falabella.com/product/123">
-                        <span class="pod-subTitle">
-                            Notebook Lenovo
-                        </span>
+                    <span class="pod-subTitle">
+                        Notebook Lenovo
+                    </span>
 
-                        <span data-testid="final-price">
-                            $499.990
-                        </span>
+                    <span data-testid="final-price">
+                        $499.990
+                    </span>
 
-                        <span data-testid="regular-price">
-                            $599.990
-                        </span>
-                    </a>
+                    <span data-testid="regular-price">
+                        $599.990
+                    </span>
                 </div>
                 """;
 
-        List<Product> products = parser.parse(html);
+        Product product =
+                parser.parse(html).getFirst();
 
-        assertEquals(1, products.size());
-
-        Product product = products.getFirst();
-
-        assertEquals(
-                new BigDecimal("599990"),
-                product.getPreviousPrice()
+        assertAll(
+                () -> assertEquals(
+                        new BigDecimal("599990"),
+                        product.getPreviousPrice()
+                ),
+                () -> assertNull(
+                        product.getDiscount()
+                )
         );
-
-        assertNull(product.getDiscount());
     }
 
     @Test
-    void shouldParseProductWithoutPreviousPriceAndDiscount() {
+    void shouldParseRealFalabellaPreviousPriceStructure() {
         String html = """
                 <div data-testid="ssr-pod">
-                    <a href="https://www.falabella.com/product/123">
-                        <span class="pod-subTitle">
-                            Notebook Lenovo
-                        </span>
+                    <b class="pod-subTitle">
+                        Notebook Gamer
+                    </b>
 
-                        <span data-testid="final-price">
-                            $499.990
-                        </span>
-                    </a>
+                    <ol class="pod-prices">
+                        <li class="prices-0"
+                            data-event-price="1.899.000">
+                            <span class="copy10 primary medium">
+                                $ 1.899.000
+                            </span>
+
+                            <span class="discount-badge-item">
+                                -55%
+                            </span>
+                        </li>
+
+                        <li class="prices-1"
+                            data-normal-price="4.190.000">
+                            <span class="copy3 primary medium crossed">
+                                $ 4.190.000
+                            </span>
+                        </li>
+                    </ol>
                 </div>
                 """;
 
-        List<Product> products = parser.parse(html);
+        Product product =
+                parser.parse(html).getFirst();
 
-        assertEquals(1, products.size());
-
-        Product product = products.getFirst();
-
-        assertNull(product.getPreviousPrice());
-        assertNull(product.getDiscount());
+        assertAll(
+                () -> assertEquals(
+                        new BigDecimal("1899000"),
+                        product.getPrice()
+                ),
+                () -> assertEquals(
+                        new BigDecimal("4190000"),
+                        product.getPreviousPrice()
+                ),
+                () -> assertEquals(
+                        "-55%",
+                        product.getDiscount()
+                )
+        );
     }
 
     @Test
-    void shouldRemoveCurrencySymbolsAndSeparatorsFromPrice() {
+    void shouldRemoveCurrencySymbolsAndSeparators() {
         String html = """
                 <div data-testid="ssr-pod">
-                    <a href="https://www.falabella.com/product/123">
-                        <span class="pod-subTitle">
-                            Notebook Lenovo
-                        </span>
+                    <span class="pod-subTitle">
+                        Notebook Lenovo
+                    </span>
 
-                        <span data-testid="final-price">
-                            CLP $ 1.299.990
-                        </span>
+                    <span data-testid="final-price">
+                        CLP $ 1.299.990
+                    </span>
 
-                        <span data-testid="regular-price">
-                            Precio normal: $1.499.990
-                        </span>
-                    </a>
+                    <span data-testid="regular-price">
+                        Precio normal: $1.499.990
+                    </span>
                 </div>
                 """;
 
-        List<Product> products = parser.parse(html);
+        Product product =
+                parser.parse(html).getFirst();
 
-        assertEquals(1, products.size());
-
-        Product product = products.getFirst();
-
-        assertEquals(
-                new BigDecimal("1299990"),
-                product.getPrice()
-        );
-
-        assertEquals(
-                new BigDecimal("1499990"),
-                product.getPreviousPrice()
+        assertAll(
+                () -> assertEquals(
+                        new BigDecimal("1299990"),
+                        product.getPrice()
+                ),
+                () -> assertEquals(
+                        new BigDecimal("1499990"),
+                        product.getPreviousPrice()
+                )
         );
     }
 
@@ -256,116 +281,37 @@ class FalabellaProductParserTest {
     void shouldTrimProductText() {
         String html = """
                 <div data-testid="ssr-pod">
-                    <a href="https://www.falabella.com/product/123">
-                        <span class="pod-subTitle">
-                                  Notebook Lenovo
-                        </span>
+                    <span class="pod-subTitle">
+                          Notebook Lenovo
+                    </span>
 
-                        <span data-testid="final-price">
-                             $499.990
-                        </span>
+                    <span data-testid="final-price">
+                         $499.990
+                    </span>
 
-                        <span class="discount-badge-item">
-                             -17%
-                        </span>
-                    </a>
+                    <span class="discount-badge-item">
+                         -17%
+                    </span>
                 </div>
                 """;
 
-        List<Product> products = parser.parse(html);
+        Product product =
+                parser.parse(html).getFirst();
 
-        assertEquals(1, products.size());
-
-        Product product = products.getFirst();
-
-        assertEquals(
-                "Notebook Lenovo",
-                product.getName()
-        );
-
-        assertEquals(
-                "-17%",
-                product.getDiscount()
+        assertAll(
+                () -> assertEquals(
+                        "Notebook Lenovo",
+                        product.getName()
+                ),
+                () -> assertEquals(
+                        "-17%",
+                        product.getDiscount()
+                )
         );
     }
 
     @Test
-    void shouldIgnoreProductWithoutName() {
-        String html = """
-                <div data-testid="ssr-pod">
-                    <a href="https://www.falabella.com/product/123">
-                        <span data-testid="final-price">
-                            $499.990
-                        </span>
-                    </a>
-                </div>
-                """;
-
-        List<Product> products = parser.parse(html);
-
-        assertTrue(products.isEmpty());
-    }
-
-    @Test
-    void shouldIgnoreProductWithBlankName() {
-        String html = """
-                <div data-testid="ssr-pod">
-                    <a href="https://www.falabella.com/product/123">
-                        <span class="pod-subTitle">
-                        </span>
-
-                        <span data-testid="final-price">
-                            $499.990
-                        </span>
-                    </a>
-                </div>
-                """;
-
-        List<Product> products = parser.parse(html);
-
-        assertTrue(products.isEmpty());
-    }
-
-    @Test
-    void shouldIgnoreProductWithoutCurrentPrice() {
-        String html = """
-                <div data-testid="ssr-pod">
-                    <a href="https://www.falabella.com/product/123">
-                        <span class="pod-subTitle">
-                            Notebook Lenovo
-                        </span>
-                    </a>
-                </div>
-                """;
-
-        List<Product> products = parser.parse(html);
-
-        assertTrue(products.isEmpty());
-    }
-
-    @Test
-    void shouldIgnoreProductWithInvalidCurrentPrice() {
-        String html = """
-                <div data-testid="ssr-pod">
-                    <a href="https://www.falabella.com/product/123">
-                        <span class="pod-subTitle">
-                            Notebook Lenovo
-                        </span>
-
-                        <span data-testid="final-price">
-                            Price unavailable
-                        </span>
-                    </a>
-                </div>
-                """;
-
-        List<Product> products = parser.parse(html);
-
-        assertTrue(products.isEmpty());
-    }
-
-    @Test
-    void shouldIgnoreProductWithoutLink() {
+    void shouldParseProductWithoutLinkElement() {
         String html = """
                 <div data-testid="ssr-pod">
                     <span class="pod-subTitle">
@@ -378,13 +324,23 @@ class FalabellaProductParserTest {
                 </div>
                 """;
 
-        List<Product> products = parser.parse(html);
+        List<Product> products =
+                parser.parse(html);
 
-        assertTrue(products.isEmpty());
+        assertAll(
+                () -> assertEquals(
+                        1,
+                        products.size()
+                ),
+                () -> assertNull(
+                        products.getFirst()
+                                .getSourceUrl()
+                )
+        );
     }
 
     @Test
-    void shouldIgnoreProductWithBlankLink() {
+    void shouldParseProductWithBlankLink() {
         String html = """
                 <div data-testid="ssr-pod">
                     <a href="">
@@ -399,98 +355,235 @@ class FalabellaProductParserTest {
                 </div>
                 """;
 
-        List<Product> products = parser.parse(html);
+        List<Product> products =
+                parser.parse(html);
+
+        assertAll(
+                () -> assertEquals(
+                        1,
+                        products.size()
+                ),
+                () -> assertNull(
+                        products.getFirst()
+                                .getSourceUrl()
+                )
+        );
+    }
+
+    @Test
+    void shouldIgnoreProductWithoutName() {
+        String html = """
+                <div data-testid="ssr-pod">
+                    <span data-testid="final-price">
+                        $499.990
+                    </span>
+                </div>
+                """;
+
+        List<Product> products =
+                parser.parse(html);
 
         assertTrue(products.isEmpty());
     }
 
     @Test
-    void shouldKeepRelativeUrlWhenBaseUriIsNotAvailable() {
+    void shouldIgnoreProductWithBlankName() {
         String html = """
                 <div data-testid="ssr-pod">
-                    <a href="/falabella-cl/product/123">
-                        <span class="pod-subTitle">
-                            Notebook Lenovo
-                        </span>
+                    <span class="pod-subTitle">
+                    </span>
 
-                        <span data-testid="final-price">
-                            $499.990
-                        </span>
-                    </a>
+                    <span data-testid="final-price">
+                        $499.990
+                    </span>
                 </div>
                 """;
 
-        List<Product> products = parser.parse(html);
+        List<Product> products =
+                parser.parse(html);
 
-        assertEquals(1, products.size());
+        assertTrue(products.isEmpty());
+    }
 
-        assertEquals(
-                "/falabella-cl/product/123",
-                products.getFirst().getSourceUrl()
-        );
+    @Test
+    void shouldIgnoreProductWithoutCurrentPrice() {
+        String html = """
+                <div data-testid="ssr-pod">
+                    <span class="pod-subTitle">
+                        Notebook Lenovo
+                    </span>
+                </div>
+                """;
+
+        List<Product> products =
+                parser.parse(html);
+
+        assertTrue(products.isEmpty());
+    }
+
+    @Test
+    void shouldIgnoreProductWithInvalidCurrentPrice() {
+        String html = """
+                <div data-testid="ssr-pod">
+                    <span class="pod-subTitle">
+                        Notebook Lenovo
+                    </span>
+
+                    <span data-testid="final-price">
+                        Price unavailable
+                    </span>
+                </div>
+                """;
+
+        List<Product> products =
+                parser.parse(html);
+
+        assertTrue(products.isEmpty());
     }
 
     @Test
     void shouldIgnoreInvalidPreviousPriceWithoutIgnoringProduct() {
         String html = """
                 <div data-testid="ssr-pod">
-                    <a href="https://www.falabella.com/product/123">
-                        <span class="pod-subTitle">
-                            Notebook Lenovo
-                        </span>
+                    <span class="pod-subTitle">
+                        Notebook Lenovo
+                    </span>
 
-                        <span data-testid="final-price">
-                            $499.990
-                        </span>
+                    <span data-testid="final-price">
+                        $499.990
+                    </span>
 
-                        <span data-testid="regular-price">
-                            Not available
-                        </span>
-                    </a>
+                    <span data-testid="regular-price">
+                        Not available
+                    </span>
                 </div>
                 """;
 
-        List<Product> products = parser.parse(html);
+        List<Product> products =
+                parser.parse(html);
 
-        assertEquals(1, products.size());
-        assertNull(products.getFirst().getPreviousPrice());
+        assertAll(
+                () -> assertEquals(
+                        1,
+                        products.size()
+                ),
+                () -> assertNull(
+                        products.getFirst()
+                                .getPreviousPrice()
+                )
+        );
+    }
+
+    @Test
+    void shouldIgnoreInvalidProductAndKeepValidProduct() {
+        String html = """
+                <div data-testid="ssr-pod">
+                    <span class="pod-subTitle">
+                        Product without price
+                    </span>
+                </div>
+
+                <div data-testid="ssr-pod">
+                    <span class="pod-subTitle">
+                        Notebook Lenovo
+                    </span>
+
+                    <span data-testid="final-price">
+                        $499.990
+                    </span>
+                </div>
+                """;
+
+        List<Product> products =
+                parser.parse(html);
+
+        assertAll(
+                () -> assertEquals(
+                        1,
+                        products.size()
+                ),
+                () -> assertEquals(
+                        "Notebook Lenovo",
+                        products.getFirst().getName()
+                )
+        );
+    }
+
+    @Test
+    void shouldOnlyParseElementsWithProductSelector() {
+        String html = """
+                <div class="unrelated-product">
+                    <span class="pod-subTitle">
+                        Incorrect product
+                    </span>
+
+                    <span data-testid="final-price">
+                        $100.000
+                    </span>
+                </div>
+
+                <div data-testid="ssr-pod">
+                    <span class="pod-subTitle">
+                        Correct product
+                    </span>
+
+                    <span data-testid="final-price">
+                        $200.000
+                    </span>
+                </div>
+                """;
+
+        List<Product> products =
+                parser.parse(html);
+
+        assertAll(
+                () -> assertEquals(
+                        1,
+                        products.size()
+                ),
+                () -> assertEquals(
+                        "Correct product",
+                        products.getFirst().getName()
+                )
+        );
     }
 
     @Test
     void shouldReturnEmptyListWhenHtmlHasNoProducts() {
         String html = """
                 <html>
-                <body>
-                    <h1>Falabella</h1>
-                </body>
+                    <body>
+                        <h1>Falabella</h1>
+                    </body>
                 </html>
                 """;
 
-        List<Product> products = parser.parse(html);
-
-        assertTrue(products.isEmpty());
+        assertTrue(
+                parser.parse(html).isEmpty()
+        );
     }
 
     @Test
     void shouldReturnEmptyListWhenHtmlIsEmpty() {
-        List<Product> products = parser.parse("");
-
-        assertTrue(products.isEmpty());
+        assertTrue(
+                parser.parse("").isEmpty()
+        );
     }
 
     @Test
     void shouldReturnEmptyListWhenHtmlIsBlank() {
-        List<Product> products = parser.parse("   \n\t   ");
-
-        assertTrue(products.isEmpty());
+        assertTrue(
+                parser.parse("   \n\t   ").isEmpty()
+        );
     }
 
     @Test
     void shouldRejectNullHtml() {
-        NullPointerException exception = assertThrows(
-                NullPointerException.class,
-                () -> parser.parse(null)
-        );
+        NullPointerException exception =
+                assertThrows(
+                        NullPointerException.class,
+                        () -> parser.parse(null)
+                );
 
         assertEquals(
                 "HTML must not be null",
@@ -502,95 +595,22 @@ class FalabellaProductParserTest {
     void shouldReturnImmutableList() {
         String html = """
                 <div data-testid="ssr-pod">
-                    <a href="https://www.falabella.com/product/123">
-                        <span class="pod-subTitle">
-                            Notebook Lenovo
-                        </span>
+                    <span class="pod-subTitle">
+                        Notebook Lenovo
+                    </span>
 
-                        <span data-testid="final-price">
-                            $499.990
-                        </span>
-                    </a>
+                    <span data-testid="final-price">
+                        $499.990
+                    </span>
                 </div>
                 """;
 
-        List<Product> products = parser.parse(html);
+        List<Product> products =
+                parser.parse(html);
 
         assertThrows(
                 UnsupportedOperationException.class,
-                () -> products.clear()
-        );
-    }
-
-    @Test
-    void shouldIgnoreInvalidProductAndKeepValidProduct() {
-        String html = """
-                <div data-testid="ssr-pod">
-                    <a href="https://www.falabella.com/product/invalid">
-                        <span class="pod-subTitle">
-                            Product without price
-                        </span>
-                    </a>
-                </div>
-
-                <div data-testid="ssr-pod">
-                    <a href="https://www.falabella.com/product/valid">
-                        <span class="pod-subTitle">
-                            Notebook Lenovo
-                        </span>
-
-                        <span data-testid="final-price">
-                            $499.990
-                        </span>
-                    </a>
-                </div>
-                """;
-
-        List<Product> products = parser.parse(html);
-
-        assertEquals(1, products.size());
-
-        assertEquals(
-                "Notebook Lenovo",
-                products.getFirst().getName()
-        );
-    }
-
-    @Test
-    void shouldOnlyParseElementsWithProductSelector() {
-        String html = """
-                <div class="unrelated-product">
-                    <a href="https://www.falabella.com/product/111">
-                        <span class="pod-subTitle">
-                            Incorrect product
-                        </span>
-
-                        <span data-testid="final-price">
-                            $100.000
-                        </span>
-                    </a>
-                </div>
-
-                <div data-testid="ssr-pod">
-                    <a href="https://www.falabella.com/product/222">
-                        <span class="pod-subTitle">
-                            Correct product
-                        </span>
-
-                        <span data-testid="final-price">
-                            $200.000
-                        </span>
-                    </a>
-                </div>
-                """;
-
-        List<Product> products = parser.parse(html);
-
-        assertEquals(1, products.size());
-
-        assertEquals(
-                "Correct product",
-                products.getFirst().getName()
+                products::clear
         );
     }
 }

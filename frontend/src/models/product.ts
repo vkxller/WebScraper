@@ -5,4 +5,5 @@ export interface Product {
     previousPrice: number | null;
     discount: string | null;
     sourceUrl: string | null;
+    imageUrl: string | null;
 }

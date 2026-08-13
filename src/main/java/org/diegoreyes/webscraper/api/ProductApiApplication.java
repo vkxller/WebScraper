@@ -4,8 +4,10 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 import org.diegoreyes.webscraper.application.ProductScraperService;
 import org.diegoreyes.webscraper.domain.model.Product;
+import org.diegoreyes.webscraper.domain.repository.ProductRepository;
 import org.diegoreyes.webscraper.infrastructure.client.JsoupHtmlClient;
 import org.diegoreyes.webscraper.infrastructure.parser.FalabellaProductParser;
+import org.diegoreyes.webscraper.infrastructure.repository.InMemoryProductRepository;
 import org.diegoreyes.webscraper.port.HtmlClient;
 import org.diegoreyes.webscraper.port.ProductParser;
 
@@ -14,6 +16,8 @@ import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.net.InetSocketAddress;
 import java.net.URI;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
@@ -21,16 +25,22 @@ public final class ProductApiApplication {
 
     private static final int PORT = 8080;
 
-    private static final URI FALABELLA_URL = URI.create(
+    private static final URI DEFAULT_URL = URI.create(
             "https://www.falabella.com/falabella-cl/category/cat40052/Computadores"
     );
+
+    private static final String FALABELLA_SEARCH_BASE =
+            "https://www.falabella.com/falabella-cl/search?Ntt=";
 
     private ProductApiApplication() {
     }
 
     public static void main(String[] args) throws IOException {
+        ProductRepository productRepository =
+                new InMemoryProductRepository();
+
         ProductScraperService scraperService =
-                createScraperService();
+                createScraperService(productRepository);
 
         HttpServer server =
                 HttpServer.create(
@@ -53,7 +63,9 @@ public final class ProductApiApplication {
         );
     }
 
-    private static ProductScraperService createScraperService() {
+    private static ProductScraperService createScraperService(
+            ProductRepository productRepository
+    ) {
         HtmlClient htmlClient =
                 new JsoupHtmlClient();
 
@@ -62,7 +74,8 @@ public final class ProductApiApplication {
 
         return new ProductScraperService(
                 htmlClient,
-                productParser
+                productParser,
+                productRepository
         );
     }
 
@@ -95,11 +108,16 @@ public final class ProductApiApplication {
             return;
         }
 
+        URI targetUri = resolveTargetUri(exchange.getRequestURI());
+
         try {
+            System.out.println("API request for: " + targetUri);
             List<Product> products =
                     scraperService.scrape(
-                            FALABELLA_URL
+                            targetUri
                     );
+
+            System.out.println("Products scraped: " + products.size());
 
             sendResponse(
                     exchange,
@@ -107,13 +125,45 @@ public final class ProductApiApplication {
                     productsToJson(products)
             );
 
-        } catch (IOException exception) {
+        } catch (Exception exception) {
+            System.err.println("Scraper error: " + exception.getMessage());
+            exception.printStackTrace(System.err);
+
+            String errorMessage = exception.getMessage() != null
+                    ? exception.getMessage()
+                    : "Unable to obtain products from the scraper.";
+
             sendResponse(
                     exchange,
                     500,
-                    "{\"error\":\"Unable to obtain products from the scraper.\"}"
+                    "{\"error\":\"" + escapeJson(errorMessage) + "\"}"
             );
         }
+    }
+
+    private static URI resolveTargetUri(URI requestUri) {
+        String query = requestUri.getRawQuery();
+        if (query == null || query.isBlank()) {
+            return DEFAULT_URL;
+        }
+
+        for (String param : query.split("&")) {
+            int equalsIndex = param.indexOf('=');
+            if (equalsIndex > 0) {
+                String key = param.substring(0, equalsIndex);
+                String rawValue = param.substring(equalsIndex + 1);
+
+                if ("search".equalsIgnoreCase(key) || "q".equalsIgnoreCase(key)) {
+                    String decoded = URLDecoder.decode(rawValue, StandardCharsets.UTF_8).trim();
+                    if (!decoded.isBlank()) {
+                        String encoded = URLEncoder.encode(decoded, StandardCharsets.UTF_8);
+                        return URI.create(FALABELLA_SEARCH_BASE + encoded);
+                    }
+                }
+            }
+        }
+
+        return DEFAULT_URL;
     }
 
     private static void addCorsHeaders(
@@ -121,7 +171,7 @@ public final class ProductApiApplication {
     ) {
         exchange.getResponseHeaders().set(
                 "Access-Control-Allow-Origin",
-                "http://localhost:5173"
+                "*"
         );
 
         exchange.getResponseHeaders().set(
@@ -191,6 +241,9 @@ public final class ProductApiApplication {
             Product product
     ) {
         return "{"
+                + "\"id\":\""
+                + escapeJson(product.getId().value())
+                + "\","
                 + "\"store\":\""
                 + escapeJson(product.getStore())
                 + "\","
@@ -213,6 +266,11 @@ public final class ProductApiApplication {
                 + "\"sourceUrl\":"
                 + optionalText(
                 product.getSourceUrl()
+        )
+                + ","
+                + "\"imageUrl\":"
+                + optionalText(
+                product.getImageUrl()
         )
                 + "}";
     }

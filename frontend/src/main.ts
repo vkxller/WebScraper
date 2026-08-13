@@ -16,7 +16,7 @@ enum CatalogState {
 
 let products: Product[] = [];
 
-async function loadCatalog(): Promise<void> {
+async function loadCatalog(searchTerm?: string): Promise<void> {
 
     const container =
         document.getElementById(
@@ -41,13 +41,22 @@ async function loadCatalog(): Promise<void> {
         CatalogState.LOADING
     );
 
-    container.innerHTML =
-        "<p>Cargando productos desde el servidor...</p>";
+    const loadingText =
+        searchTerm && searchTerm.length > 0
+            ? `Buscando "${escapeHtml(searchTerm)}" en Falabella...`
+            : "Cargando productos desde Falabella...";
+
+    container.innerHTML = `<p>${loadingText}</p>`;
+    errorBlock.textContent = "";
 
     try {
+        const url =
+            searchTerm && searchTerm.length > 0
+                ? `/api/products?search=${encodeURIComponent(searchTerm)}`
+                : "/api/products";
 
         const response =
-            await fetch("/api/products");
+            await fetch(url);
 
         if (!response.ok) {
             throw new Error(
@@ -69,7 +78,8 @@ async function loadCatalog(): Promise<void> {
         renderProducts(
             products,
             container,
-            errorBlock
+            errorBlock,
+            searchTerm
         );
 
     } catch (error: unknown) {
@@ -100,7 +110,8 @@ async function loadCatalog(): Promise<void> {
 function renderProducts(
     productsToRender: Product[],
     container: HTMLElement,
-    errorBlock: HTMLElement
+    errorBlock: HTMLElement,
+    searchTerm?: string
 ): void {
 
     errorBlock.textContent = "";
@@ -113,8 +124,12 @@ function renderProducts(
             CatalogState.EMPTY
         );
 
-        container.innerHTML =
-            "<p>No hay productos disponibles en este momento.</p>";
+        const emptyMessage =
+            searchTerm && searchTerm.length > 0
+                ? `No se encontraron productos para "${escapeHtml(searchTerm)}" en Falabella.`
+                : "No hay productos disponibles en este momento.";
+
+        container.innerHTML = `<p>${emptyMessage}</p>`;
 
         return;
     }
@@ -153,53 +168,15 @@ function setupSearchForm(): void {
                     "txt-busqueda"
                 ) as HTMLInputElement | null;
 
-            const container =
-                document.getElementById(
-                    "contenedor-catalogo"
-                );
-
-            const errorBlock =
-                document.getElementById(
-                    "bloque-error"
-                );
-
-            if (
-                searchInput === null
-                || container === null
-                || errorBlock === null
-            ) {
+            if (searchInput === null) {
                 return;
             }
 
             const searchValue =
                 searchInput.value
-                    .trim()
-                    .toLowerCase();
+                    .trim();
 
-            if (searchValue.length === 0) {
-
-                renderProducts(
-                    products,
-                    container,
-                    errorBlock
-                );
-
-                return;
-            }
-
-            const filteredProducts =
-                products.filter(
-                    (product) =>
-                        product.name
-                            .toLowerCase()
-                            .includes(searchValue)
-                );
-
-            renderProducts(
-                filteredProducts,
-                container,
-                errorBlock
-            );
+            void loadCatalog(searchValue);
         }
     );
 }
@@ -255,7 +232,21 @@ function isProduct(
             product.sourceUrl === null
             || typeof product.sourceUrl === "string"
         )
+
+        && (
+            product.imageUrl === null
+            || typeof product.imageUrl === "string"
+        )
     );
+}
+
+function escapeHtml(value: string): string {
+    return value
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
 }
 
 document.addEventListener(

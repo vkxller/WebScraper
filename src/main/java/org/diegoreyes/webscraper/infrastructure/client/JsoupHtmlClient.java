@@ -14,7 +14,7 @@ public final class JsoupHtmlClient implements HtmlClient {
                     + "AppleWebKit/537.36 (KHTML, like Gecko) "
                     + "Chrome/131.0.0.0 Safari/537.36";
 
-    private static final int DEFAULT_TIMEOUT_MILLIS = 10_000;
+    private static final int DEFAULT_TIMEOUT_MILLIS = 20_000;
 
     private final String userAgent;
     private final int timeoutMillis;
@@ -60,6 +60,16 @@ public final class JsoupHtmlClient implements HtmlClient {
                 .timeout(timeoutMillis)
                 .followRedirects(true)
                 .ignoreHttpErrors(false)
+                .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8")
+                .header("Accept-Language", "es-CL,es;q=0.9,en;q=0.8")
+                .header("Sec-Ch-Ua", "\"Chromium\";v=\"131\", \"Not_A Brand\";v=\"24\", \"Google Chrome\";v=\"131\"")
+                .header("Sec-Ch-Ua-Mobile", "?0")
+                .header("Sec-Ch-Ua-Platform", "\"Windows\"")
+                .header("Sec-Fetch-Dest", "document")
+                .header("Sec-Fetch-Mode", "navigate")
+                .header("Sec-Fetch-Site", "none")
+                .header("Sec-Fetch-User", "?1")
+                .header("Upgrade-Insecure-Requests", "1")
                 .execute()
                 .body();
     }

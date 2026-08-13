@@ -1,4 +1,4 @@
-package org.diegoreyes.webscraper.application;
+package org.diegoreyes.webscraper.application.usecase;
 
 import org.diegoreyes.webscraper.domain.model.Product;
 import org.diegoreyes.webscraper.domain.repository.ProductRepository;
@@ -11,16 +11,16 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Application service that coordinates scraping operations and repository persistence.
- * Uses constructor injection to decouple application logic from infrastructure implementations.
+ * Use case that orchestrates scraping products from a web page
+ * and persisting them into the domain ProductRepository.
  */
-public final class ProductScraperService {
+public final class ScrapeAndSaveProductsUseCase {
 
     private final HtmlClient htmlClient;
     private final ProductParser productParser;
     private final ProductRepository productRepository;
 
-    public ProductScraperService(
+    public ScrapeAndSaveProductsUseCase(
             HtmlClient htmlClient,
             ProductParser productParser,
             ProductRepository productRepository
@@ -29,27 +29,17 @@ public final class ProductScraperService {
                 htmlClient,
                 "HtmlClient must not be null"
         );
-
         this.productParser = Objects.requireNonNull(
                 productParser,
                 "ProductParser must not be null"
         );
-
-        this.productRepository = productRepository;
-    }
-
-    public ProductScraperService(
-            HtmlClient htmlClient,
-            ProductParser productParser
-    ) {
-        this(
-                htmlClient,
-                productParser,
-                null
+        this.productRepository = Objects.requireNonNull(
+                productRepository,
+                "ProductRepository must not be null"
         );
     }
 
-    public List<Product> scrape(URI uri) throws IOException {
+    public List<Product> execute(URI uri) throws IOException {
         Objects.requireNonNull(
                 uri,
                 "URI must not be null"
@@ -58,17 +48,8 @@ public final class ProductScraperService {
         String html = htmlClient.download(uri);
         List<Product> products = productParser.parse(html);
 
-        if (productRepository != null) {
-            productRepository.saveAll(products);
-        }
+        productRepository.saveAll(products);
 
         return List.copyOf(products);
-    }
-
-    public List<Product> getStoredProducts() {
-        if (productRepository == null) {
-            return List.of();
-        }
-        return productRepository.findAll();
     }
 }

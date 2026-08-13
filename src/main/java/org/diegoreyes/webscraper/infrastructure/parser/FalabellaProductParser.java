@@ -19,8 +19,21 @@ public final class FalabellaProductParser implements ProductParser {
     private static final String STORE_NAME =
             "Falabella";
 
+    private static final String BASE_URL =
+            "https://www.falabella.com";
+
     private static final String PRODUCT_SELECTOR =
             "[data-testid=ssr-pod]";
+
+    private static final String PRODUCT_LINK_SELECTOR =
+            "a[href]";
+
+    private static final String IMAGE_SELECTOR =
+            "img[id^=testId-pod-image], "
+                    + "img[data-testid=pod-image], "
+                    + ".pod-image img, "
+                    + "picture img, "
+                    + "img";
 
     private static final String PRODUCT_NAME_SELECTOR =
             ".pod-subTitle";
@@ -57,7 +70,7 @@ public final class FalabellaProductParser implements ProductParser {
         }
 
         Document document =
-                Jsoup.parse(html);
+                Jsoup.parse(html, BASE_URL);
 
         Elements productElements =
                 document.select(PRODUCT_SELECTOR);
@@ -109,12 +122,20 @@ public final class FalabellaProductParser implements ProductParser {
         );
 
         /*
-         * Falabella currently sends an empty href in the
-         * initial HTML downloaded by Jsoup. The product URL
-         * will be implemented later using a solution capable
-         * of processing dynamic JavaScript content.
+         * Falabella does not always include a populated href in the
+         * initial HTML downloaded by Jsoup (some links are injected
+         * dynamically using JavaScript). When a real href is present,
+         * it is captured and resolved to an absolute URL.
          */
-        String sourceUrl = null;
+        String sourceUrl = extractLink(
+                productElement,
+                PRODUCT_LINK_SELECTOR
+        );
+
+        String imageUrl = extractImage(
+                productElement,
+                IMAGE_SELECTOR
+        );
 
         return new Product(
                 STORE_NAME,
@@ -122,8 +143,110 @@ public final class FalabellaProductParser implements ProductParser {
                 price,
                 previousPrice,
                 discount,
-                sourceUrl
+                sourceUrl,
+                imageUrl
         );
+    }
+
+    private String extractLink(
+            Element productElement,
+            String selector
+    ) {
+        /*
+         * On the real Falabella markup the product card itself can
+         * be the anchor tag, so it is checked before looking at its
+         * descendants.
+         */
+        Element linkElement =
+                productElement.is("a[href]")
+                        ? productElement
+                        : productElement.selectFirst(selector);
+
+        if (linkElement == null
+                || linkElement.attr("href").isBlank()) {
+            return null;
+        }
+
+        String absoluteUrl =
+                linkElement.absUrl("href");
+
+        return absoluteUrl.isBlank()
+                ? null
+                : absoluteUrl;
+    }
+
+    private String extractImage(
+            Element productElement,
+            String selector
+    ) {
+        Element imageElement =
+                productElement.selectFirst(selector);
+
+        if (imageElement == null) {
+            return null;
+        }
+
+        String imageUrl = "";
+
+        if (!imageElement.attr("src").isBlank()) {
+            imageUrl = imageElement.absUrl("src");
+        }
+
+        /*
+         * Some product cards lazy-load images and only
+         * populate a data-src attribute in the initial HTML.
+         */
+        if (imageUrl.isBlank()
+                && !imageElement.attr("data-src").isBlank()) {
+            imageUrl = imageElement.absUrl("data-src");
+        }
+
+        if (imageUrl.isBlank()) {
+            String firstSrcsetUrl = firstFromSrcset(
+                    imageElement.attr("srcset")
+            );
+
+            if (!firstSrcsetUrl.isBlank()) {
+                imageUrl = resolveAgainstBase(firstSrcsetUrl);
+            }
+        }
+
+        return imageUrl.isBlank()
+                ? null
+                : imageUrl;
+    }
+
+    private String resolveAgainstBase(
+            String possiblyRelativeUrl
+    ) {
+        if (possiblyRelativeUrl.startsWith("http://")
+                || possiblyRelativeUrl.startsWith("https://")) {
+            return possiblyRelativeUrl;
+        }
+
+        if (possiblyRelativeUrl.startsWith("/")) {
+            return BASE_URL + possiblyRelativeUrl;
+        }
+
+        return possiblyRelativeUrl;
+    }
+
+    private String firstFromSrcset(
+            String srcset
+    ) {
+        if (srcset == null || srcset.isBlank()) {
+            return "";
+        }
+
+        String firstCandidate =
+                srcset.split(",")[0].trim();
+
+        int spaceIndex =
+                firstCandidate.indexOf(' ');
+
+        return spaceIndex == -1
+                ? firstCandidate
+                : firstCandidate.substring(0, spaceIndex);
     }
 
     private String extractText(

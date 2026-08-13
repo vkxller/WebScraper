@@ -4,6 +4,23 @@ export function generateProductCardHtml(
     product: Product
 ): string {
 
+    const image =
+        product.imageUrl === null
+            ? `
+        <div class="product-image product-image--placeholder">
+          Sin imagen disponible
+        </div>
+      `
+            : `
+        <div class="product-image">
+          <img
+            src="${escapeHtml(product.imageUrl)}"
+            alt="${escapeHtml(product.name)}"
+            loading="lazy"
+          />
+        </div>
+      `;
+
     const previousPrice =
         product.previousPrice === null
             ? ""
@@ -39,6 +56,8 @@ export function generateProductCardHtml(
 
     return `
     <article>
+      ${image}
+
       <h2>
         ${escapeHtml(product.name)}
       </h2>

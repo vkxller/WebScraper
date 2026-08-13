@@ -1,6 +1,8 @@
 package org.diegoreyes.webscraper.application;
 
 import org.diegoreyes.webscraper.domain.model.Product;
+import org.diegoreyes.webscraper.domain.repository.ProductRepository;
+import org.diegoreyes.webscraper.domain.valueobject.ProductId;
 import org.diegoreyes.webscraper.port.HtmlClient;
 import org.diegoreyes.webscraper.port.ProductParser;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,18 +35,22 @@ class ProductScraperServiceTest {
     @Mock
     private ProductParser productParser;
 
+    @Mock
+    private ProductRepository productRepository;
+
     private ProductScraperService service;
 
     @BeforeEach
     void setUp() {
         service = new ProductScraperService(
                 htmlClient,
-                productParser
+                productParser,
+                productRepository
         );
     }
 
     @Test
-    void shouldDownloadParseAndReturnProducts() throws IOException {
+    void shouldDownloadParseSaveAndReturnProducts() throws IOException {
         Product product = createProduct();
         List<Product> parsedProducts = List.of(product);
 
@@ -60,6 +66,35 @@ class ProductScraperServiceTest {
 
         verify(htmlClient).download(URI_TO_SCRAPE);
         verify(productParser).parse(HTML);
+        verify(productRepository).saveAll(parsedProducts);
+    }
+
+    @Test
+    void shouldWorkWithoutRepository() throws IOException {
+        ProductScraperService serviceWithoutRepo =
+                new ProductScraperService(htmlClient, productParser);
+
+        Product product = createProduct();
+        List<Product> parsedProducts = List.of(product);
+
+        when(htmlClient.download(URI_TO_SCRAPE)).thenReturn(HTML);
+        when(productParser.parse(HTML)).thenReturn(parsedProducts);
+
+        List<Product> result = serviceWithoutRepo.scrape(URI_TO_SCRAPE);
+
+        assertEquals(parsedProducts, result);
+        assertTrue(serviceWithoutRepo.getStoredProducts().isEmpty());
+    }
+
+    @Test
+    void shouldGetStoredProductsFromRepository() {
+        Product product = createProduct();
+        when(productRepository.findAll()).thenReturn(List.of(product));
+
+        List<Product> stored = service.getStoredProducts();
+        assertEquals(1, stored.size());
+        assertEquals(product, stored.getFirst());
+        verify(productRepository).findAll();
     }
 
     @Test
@@ -74,7 +109,8 @@ class ProductScraperServiceTest {
 
         InOrder inOrder = inOrder(
                 htmlClient,
-                productParser
+                productParser,
+                productRepository
         );
 
         inOrder.verify(htmlClient)
@@ -82,6 +118,9 @@ class ProductScraperServiceTest {
 
         inOrder.verify(productParser)
                 .parse(HTML);
+
+        inOrder.verify(productRepository)
+                .saveAll(List.of());
     }
 
     @Test
@@ -106,7 +145,8 @@ class ProductScraperServiceTest {
     @Test
     void shouldCreateDefensiveCopyOfParsedProducts() throws IOException {
         List<Product> mutableProducts = new ArrayList<>();
-        mutableProducts.add(createProduct());
+        Product product = createProduct();
+        mutableProducts.add(product);
 
         when(htmlClient.download(URI_TO_SCRAPE))
                 .thenReturn(HTML);
@@ -119,7 +159,7 @@ class ProductScraperServiceTest {
         mutableProducts.clear();
 
         assertEquals(1, result.size());
-        assertEquals(createProduct(), result.getFirst());
+        assertEquals(product, result.getFirst());
     }
 
     @Test
@@ -159,6 +199,7 @@ class ProductScraperServiceTest {
 
         verify(htmlClient).download(URI_TO_SCRAPE);
         verifyNoInteractions(productParser);
+        verifyNoInteractions(productRepository);
     }
 
     @Test
@@ -172,6 +213,7 @@ class ProductScraperServiceTest {
         );
 
         verifyNoInteractions(productParser);
+        verifyNoInteractions(productRepository);
     }
 
     @Test
@@ -180,7 +222,8 @@ class ProductScraperServiceTest {
                 NullPointerException.class,
                 () -> new ProductScraperService(
                         null,
-                        productParser
+                        productParser,
+                        productRepository
                 )
         );
 
@@ -196,7 +239,8 @@ class ProductScraperServiceTest {
                 NullPointerException.class,
                 () -> new ProductScraperService(
                         htmlClient,
-                        null
+                        null,
+                        productRepository
                 )
         );
 
@@ -220,7 +264,8 @@ class ProductScraperServiceTest {
 
         verifyNoInteractions(
                 htmlClient,
-                productParser
+                productParser,
+                productRepository
         );
     }
 
@@ -273,31 +318,39 @@ class ProductScraperServiceTest {
         verify(productParser, times(1))
                 .parse(HTML);
 
+        verify(productRepository, times(1))
+                .saveAll(List.of());
+
         verifyNoMoreInteractions(
                 htmlClient,
-                productParser
+                productParser,
+                productRepository
         );
     }
 
     private Product createProduct() {
         return new Product(
+                ProductId.of("prod-1"),
                 "Falabella",
                 "Notebook Lenovo",
                 new BigDecimal("499990"),
                 new BigDecimal("599990"),
                 "-17%",
-                "https://www.falabella.com/product/123"
+                "https://www.falabella.com/product/123",
+                null
         );
     }
 
     private Product createAnotherProduct() {
         return new Product(
+                ProductId.of("prod-2"),
                 "Falabella",
                 "Notebook HP",
                 new BigDecimal("399990"),
                 new BigDecimal("449990"),
                 "-11%",
-                "https://www.falabella.com/product/456"
+                "https://www.falabella.com/product/456",
+                null
         );
     }
 }

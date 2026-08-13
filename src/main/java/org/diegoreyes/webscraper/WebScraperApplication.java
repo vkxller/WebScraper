@@ -2,23 +2,30 @@ package org.diegoreyes.webscraper;
 
 import org.diegoreyes.webscraper.application.ProductScraperService;
 import org.diegoreyes.webscraper.domain.model.Product;
+import org.diegoreyes.webscraper.domain.repository.ProductRepository;
 import org.diegoreyes.webscraper.infrastructure.client.JsoupHtmlClient;
 import org.diegoreyes.webscraper.infrastructure.parser.FalabellaProductParser;
+import org.diegoreyes.webscraper.infrastructure.repository.InMemoryProductRepository;
 import org.diegoreyes.webscraper.port.HtmlClient;
 import org.diegoreyes.webscraper.port.ProductParser;
 
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URI;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.text.NumberFormat;
 import java.util.List;
 import java.util.Locale;
 
 public final class WebScraperApplication {
 
-    private static final URI FALABELLA_URL = URI.create(
+    private static final URI DEFAULT_URL = URI.create(
             "https://www.falabella.com/falabella-cl/category/cat40052/Computadores"
     );
+
+    private static final String FALABELLA_SEARCH_BASE =
+            "https://www.falabella.com/falabella-cl/search?Ntt=";
 
     private static final NumberFormat CHILEAN_PRICE_FORMAT =
             NumberFormat.getIntegerInstance(
@@ -29,12 +36,18 @@ public final class WebScraperApplication {
     }
 
     public static void main(String[] args) {
+        ProductRepository productRepository =
+                new InMemoryProductRepository();
+
         ProductScraperService scraperService =
-                createScraperService();
+                createScraperService(productRepository);
+
+        URI targetUri = resolveTargetUri(args);
 
         try {
+            System.out.println("Searching products at: " + targetUri);
             List<Product> products =
-                    scraperService.scrape(FALABELLA_URL);
+                    scraperService.scrape(targetUri);
 
             printProducts(products);
 
@@ -43,7 +56,19 @@ public final class WebScraperApplication {
         }
     }
 
-    private static ProductScraperService createScraperService() {
+    private static URI resolveTargetUri(String[] args) {
+        if (args == null || args.length == 0 || args[0].isBlank()) {
+            return DEFAULT_URL;
+        }
+
+        String searchTerm = String.join(" ", args).trim();
+        String encodedTerm = URLEncoder.encode(searchTerm, StandardCharsets.UTF_8);
+        return URI.create(FALABELLA_SEARCH_BASE + encodedTerm);
+    }
+
+    private static ProductScraperService createScraperService(
+            ProductRepository productRepository
+    ) {
         HtmlClient htmlClient =
                 new JsoupHtmlClient();
 
@@ -52,7 +77,8 @@ public final class WebScraperApplication {
 
         return new ProductScraperService(
                 htmlClient,
-                productParser
+                productParser,
+                productRepository
         );
     }
 
@@ -75,6 +101,10 @@ public final class WebScraperApplication {
     }
 
     private static void printProduct(Product product) {
+        System.out.println(
+                "ID: " + product.getId()
+        );
+
         System.out.println(
                 "Store: " + product.getStore()
         );
@@ -106,6 +136,13 @@ public final class WebScraperApplication {
                 "Source URL: "
                         + formatOptionalText(
                         product.getSourceUrl()
+                )
+        );
+
+        System.out.println(
+                "Image URL: "
+                        + formatOptionalText(
+                        product.getImageUrl()
                 )
         );
 

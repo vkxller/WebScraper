@@ -1,6 +1,12 @@
 package org.diegoreyes.webscraper.domain.model;
 
 import org.diegoreyes.webscraper.domain.exception.InvalidProductException;
+import org.diegoreyes.webscraper.domain.valueobject.Discount;
+import org.diegoreyes.webscraper.domain.valueobject.Price;
+import org.diegoreyes.webscraper.domain.valueobject.ProductId;
+import org.diegoreyes.webscraper.domain.valueobject.ProductName;
+import org.diegoreyes.webscraper.domain.valueobject.ProductUrl;
+import org.diegoreyes.webscraper.domain.valueobject.StoreName;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -8,6 +14,9 @@ import java.math.BigDecimal;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ProductTest {
+
+    private static final ProductId ID =
+            ProductId.of("test-prod-123");
 
     private static final String STORE =
             "Falabella";
@@ -27,42 +36,63 @@ class ProductTest {
     private static final String SOURCE_URL =
             "https://www.falabella.com/product/123";
 
+    private static final String IMAGE_URL =
+            "https://www.falabella.com/image/123.jpg";
+
+    @Test
+    void shouldCreateProductWithAllFieldsUsingValueObjects() {
+        Product product = new Product(
+                ID,
+                new StoreName(STORE),
+                new ProductName(NAME),
+                new Price(PRICE),
+                new Price(PREVIOUS_PRICE),
+                new Discount(DISCOUNT),
+                new ProductUrl(SOURCE_URL),
+                new ProductUrl(IMAGE_URL)
+        );
+
+        assertAll(
+                () -> assertEquals(ID, product.getId()),
+                () -> assertEquals(STORE, product.getStore()),
+                () -> assertEquals(STORE, product.getStoreName().value()),
+                () -> assertEquals(NAME, product.getName()),
+                () -> assertEquals(NAME, product.getProductName().value()),
+                () -> assertEquals(PRICE, product.getPrice()),
+                () -> assertEquals(PRICE, product.getProductPrice().amount()),
+                () -> assertEquals(PREVIOUS_PRICE, product.getPreviousPrice()),
+                () -> assertEquals(PREVIOUS_PRICE, product.getProductPreviousPrice().amount()),
+                () -> assertEquals(DISCOUNT, product.getDiscount()),
+                () -> assertEquals(DISCOUNT, product.getProductDiscount().value()),
+                () -> assertEquals(SOURCE_URL, product.getSourceUrl()),
+                () -> assertEquals(SOURCE_URL, product.getProductSourceUrl().value()),
+                () -> assertEquals(IMAGE_URL, product.getImageUrl()),
+                () -> assertEquals(IMAGE_URL, product.getProductImageUrl().value())
+        );
+    }
+
     @Test
     void shouldCreateProductWithAllFields() {
         Product product = new Product(
+                ID,
                 STORE,
                 NAME,
                 PRICE,
                 PREVIOUS_PRICE,
                 DISCOUNT,
-                SOURCE_URL
+                SOURCE_URL,
+                IMAGE_URL
         );
 
         assertAll(
-                () -> assertEquals(
-                        STORE,
-                        product.getStore()
-                ),
-                () -> assertEquals(
-                        NAME,
-                        product.getName()
-                ),
-                () -> assertEquals(
-                        PRICE,
-                        product.getPrice()
-                ),
-                () -> assertEquals(
-                        PREVIOUS_PRICE,
-                        product.getPreviousPrice()
-                ),
-                () -> assertEquals(
-                        DISCOUNT,
-                        product.getDiscount()
-                ),
-                () -> assertEquals(
-                        SOURCE_URL,
-                        product.getSourceUrl()
-                )
+                () -> assertEquals(ID, product.getId()),
+                () -> assertEquals(STORE, product.getStore()),
+                () -> assertEquals(NAME, product.getName()),
+                () -> assertEquals(PRICE, product.getPrice()),
+                () -> assertEquals(PREVIOUS_PRICE, product.getPreviousPrice()),
+                () -> assertEquals(DISCOUNT, product.getDiscount()),
+                () -> assertEquals(SOURCE_URL, product.getSourceUrl()),
+                () -> assertEquals(IMAGE_URL, product.getImageUrl())
         );
     }
 
@@ -78,15 +108,15 @@ class ProductTest {
         );
 
         assertAll(
-                () -> assertNull(
-                        product.getPreviousPrice()
-                ),
-                () -> assertNull(
-                        product.getDiscount()
-                ),
-                () -> assertNull(
-                        product.getSourceUrl()
-                )
+                () -> assertNotNull(product.getId()),
+                () -> assertNull(product.getPreviousPrice()),
+                () -> assertNull(product.getProductPreviousPrice()),
+                () -> assertNull(product.getDiscount()),
+                () -> assertNull(product.getProductDiscount()),
+                () -> assertNull(product.getSourceUrl()),
+                () -> assertNull(product.getProductSourceUrl()),
+                () -> assertNull(product.getImageUrl()),
+                () -> assertNull(product.getProductImageUrl())
         );
     }
 
@@ -98,47 +128,36 @@ class ProductTest {
                 PRICE,
                 null,
                 "   ",
+                "   ",
                 "   "
         );
 
         assertAll(
-                () -> assertNull(
-                        product.getDiscount()
-                ),
-                () -> assertNull(
-                        product.getSourceUrl()
-                )
+                () -> assertNull(product.getDiscount()),
+                () -> assertNull(product.getSourceUrl()),
+                () -> assertNull(product.getImageUrl())
         );
     }
 
     @Test
     void shouldTrimTextFields() {
         Product product = new Product(
+                ID,
                 "  Falabella  ",
                 "  Notebook Lenovo  ",
                 PRICE,
                 PREVIOUS_PRICE,
                 "  -17%  ",
-                "  https://www.falabella.com/product/123  "
+                "  https://www.falabella.com/product/123  ",
+                "  https://www.falabella.com/image/123.jpg  "
         );
 
         assertAll(
-                () -> assertEquals(
-                        STORE,
-                        product.getStore()
-                ),
-                () -> assertEquals(
-                        NAME,
-                        product.getName()
-                ),
-                () -> assertEquals(
-                        DISCOUNT,
-                        product.getDiscount()
-                ),
-                () -> assertEquals(
-                        SOURCE_URL,
-                        product.getSourceUrl()
-                )
+                () -> assertEquals(STORE, product.getStore()),
+                () -> assertEquals(NAME, product.getName()),
+                () -> assertEquals(DISCOUNT, product.getDiscount()),
+                () -> assertEquals(SOURCE_URL, product.getSourceUrl()),
+                () -> assertEquals(IMAGE_URL, product.getImageUrl())
         );
     }
 
@@ -153,10 +172,7 @@ class ProductTest {
                 SOURCE_URL
         );
 
-        assertEquals(
-                BigDecimal.ZERO,
-                product.getPrice()
-        );
+        assertEquals(BigDecimal.ZERO, product.getPrice());
     }
 
     @Test
@@ -170,10 +186,7 @@ class ProductTest {
                 SOURCE_URL
         );
 
-        assertEquals(
-                BigDecimal.ZERO,
-                product.getPreviousPrice()
-        );
+        assertEquals(BigDecimal.ZERO, product.getPreviousPrice());
     }
 
     @Test
@@ -181,19 +194,18 @@ class ProductTest {
         InvalidProductException exception = assertThrows(
                 InvalidProductException.class,
                 () -> new Product(
+                        ID,
                         null,
                         NAME,
                         PRICE,
                         PREVIOUS_PRICE,
                         DISCOUNT,
-                        SOURCE_URL
+                        SOURCE_URL,
+                        IMAGE_URL
                 )
         );
 
-        assertEquals(
-                "Store must not be blank",
-                exception.getMessage()
-        );
+        assertEquals("Store must not be blank", exception.getMessage());
     }
 
     @Test
@@ -201,19 +213,18 @@ class ProductTest {
         InvalidProductException exception = assertThrows(
                 InvalidProductException.class,
                 () -> new Product(
+                        ID,
                         "   ",
                         NAME,
                         PRICE,
                         PREVIOUS_PRICE,
                         DISCOUNT,
-                        SOURCE_URL
+                        SOURCE_URL,
+                        IMAGE_URL
                 )
         );
 
-        assertEquals(
-                "Store must not be blank",
-                exception.getMessage()
-        );
+        assertEquals("Store must not be blank", exception.getMessage());
     }
 
     @Test
@@ -221,19 +232,18 @@ class ProductTest {
         InvalidProductException exception = assertThrows(
                 InvalidProductException.class,
                 () -> new Product(
+                        ID,
                         STORE,
                         null,
                         PRICE,
                         PREVIOUS_PRICE,
                         DISCOUNT,
-                        SOURCE_URL
+                        SOURCE_URL,
+                        IMAGE_URL
                 )
         );
 
-        assertEquals(
-                "Product name must not be blank",
-                exception.getMessage()
-        );
+        assertEquals("Product name must not be blank", exception.getMessage());
     }
 
     @Test
@@ -241,19 +251,18 @@ class ProductTest {
         InvalidProductException exception = assertThrows(
                 InvalidProductException.class,
                 () -> new Product(
+                        ID,
                         STORE,
                         "   ",
                         PRICE,
                         PREVIOUS_PRICE,
                         DISCOUNT,
-                        SOURCE_URL
+                        SOURCE_URL,
+                        IMAGE_URL
                 )
         );
 
-        assertEquals(
-                "Product name must not be blank",
-                exception.getMessage()
-        );
+        assertEquals("Product name must not be blank", exception.getMessage());
     }
 
     @Test
@@ -261,19 +270,18 @@ class ProductTest {
         InvalidProductException exception = assertThrows(
                 InvalidProductException.class,
                 () -> new Product(
+                        ID,
                         STORE,
                         NAME,
                         null,
                         PREVIOUS_PRICE,
                         DISCOUNT,
-                        SOURCE_URL
+                        SOURCE_URL,
+                        IMAGE_URL
                 )
         );
 
-        assertEquals(
-                "Price must be greater than or equal to zero",
-                exception.getMessage()
-        );
+        assertEquals("Price must be greater than or equal to zero", exception.getMessage());
     }
 
     @Test
@@ -281,19 +289,18 @@ class ProductTest {
         InvalidProductException exception = assertThrows(
                 InvalidProductException.class,
                 () -> new Product(
+                        ID,
                         STORE,
                         NAME,
                         new BigDecimal("-1"),
                         PREVIOUS_PRICE,
                         DISCOUNT,
-                        SOURCE_URL
+                        SOURCE_URL,
+                        IMAGE_URL
                 )
         );
 
-        assertEquals(
-                "Price must be greater than or equal to zero",
-                exception.getMessage()
-        );
+        assertEquals("Price must be greater than or equal to zero", exception.getMessage());
     }
 
     @Test
@@ -301,332 +308,82 @@ class ProductTest {
         InvalidProductException exception = assertThrows(
                 InvalidProductException.class,
                 () -> new Product(
+                        ID,
                         STORE,
                         NAME,
                         PRICE,
                         new BigDecimal("-1"),
                         DISCOUNT,
-                        SOURCE_URL
+                        SOURCE_URL,
+                        IMAGE_URL
                 )
         );
 
-        assertEquals(
-                "Previous price must be greater than or equal to zero",
-                exception.getMessage()
+        assertEquals("Previous price must be greater than or equal to zero", exception.getMessage());
+    }
+
+    @Test
+    void shouldBeEqualWhenIdentityIsSame() {
+        Product firstProduct = createProduct(ID);
+        Product secondProduct = createProduct(ID);
+
+        assertAll(
+                () -> assertEquals(firstProduct, secondProduct),
+                () -> assertEquals(firstProduct.hashCode(), secondProduct.hashCode())
         );
     }
 
     @Test
-    void shouldBeEqualWhenAllFieldsAreEqual() {
-        Product firstProduct = createProduct();
-        Product secondProduct = createProduct();
+    void shouldNotBeEqualWhenIdentityIsDifferent() {
+        Product firstProduct = createProduct(ProductId.of("id-1"));
+        Product secondProduct = createProduct(ProductId.of("id-2"));
 
-        assertAll(
-                () -> assertEquals(
-                        firstProduct,
-                        secondProduct
-                ),
-                () -> assertEquals(
-                        firstProduct.hashCode(),
-                        secondProduct.hashCode()
-                )
-        );
+        assertNotEquals(firstProduct, secondProduct);
     }
 
     @Test
     void shouldBeEqualToItself() {
-        Product product = createProduct();
+        Product product = createProduct(ID);
 
-        assertEquals(
-                product,
-                product
-        );
+        assertEquals(product, product);
     }
 
     @Test
     void shouldNotBeEqualToNull() {
-        Product product = createProduct();
+        Product product = createProduct(ID);
 
-        assertNotEquals(
-                product,
-                null
-        );
+        assertNotEquals(product, null);
     }
 
     @Test
     void shouldNotBeEqualToAnotherType() {
-        Product product = createProduct();
+        Product product = createProduct(ID);
 
-        assertNotEquals(
-                product,
-                "Product"
-        );
-    }
-
-    @Test
-    void shouldNotBeEqualWhenStoreIsDifferent() {
-        Product differentProduct = new Product(
-                "Ripley",
-                NAME,
-                PRICE,
-                PREVIOUS_PRICE,
-                DISCOUNT,
-                SOURCE_URL
-        );
-
-        assertNotEquals(
-                createProduct(),
-                differentProduct
-        );
-    }
-
-    @Test
-    void shouldNotBeEqualWhenNameIsDifferent() {
-        Product differentProduct = new Product(
-                STORE,
-                "Notebook HP",
-                PRICE,
-                PREVIOUS_PRICE,
-                DISCOUNT,
-                SOURCE_URL
-        );
-
-        assertNotEquals(
-                createProduct(),
-                differentProduct
-        );
-    }
-
-    @Test
-    void shouldNotBeEqualWhenPriceIsDifferent() {
-        Product differentProduct = new Product(
-                STORE,
-                NAME,
-                new BigDecimal("399990"),
-                PREVIOUS_PRICE,
-                DISCOUNT,
-                SOURCE_URL
-        );
-
-        assertNotEquals(
-                createProduct(),
-                differentProduct
-        );
-    }
-
-    @Test
-    void shouldNotBeEqualWhenPreviousPriceIsDifferent() {
-        Product differentProduct = new Product(
-                STORE,
-                NAME,
-                PRICE,
-                new BigDecimal("699990"),
-                DISCOUNT,
-                SOURCE_URL
-        );
-
-        assertNotEquals(
-                createProduct(),
-                differentProduct
-        );
-    }
-
-    @Test
-    void shouldNotBeEqualWhenDiscountIsDifferent() {
-        Product differentProduct = new Product(
-                STORE,
-                NAME,
-                PRICE,
-                PREVIOUS_PRICE,
-                "-10%",
-                SOURCE_URL
-        );
-
-        assertNotEquals(
-                createProduct(),
-                differentProduct
-        );
-    }
-
-    @Test
-    void shouldNotBeEqualWhenSourceUrlIsDifferent() {
-        Product differentProduct = new Product(
-                STORE,
-                NAME,
-                PRICE,
-                PREVIOUS_PRICE,
-                DISCOUNT,
-                "https://www.falabella.com/product/999"
-        );
-
-        assertNotEquals(
-                createProduct(),
-                differentProduct
-        );
-    }
-
-    @Test
-    void shouldBeEqualWhenAllOptionalFieldsAreNull() {
-        Product firstProduct = new Product(
-                STORE,
-                NAME,
-                PRICE,
-                null,
-                null,
-                null
-        );
-
-        Product secondProduct = new Product(
-                STORE,
-                NAME,
-                PRICE,
-                null,
-                null,
-                null
-        );
-
-        assertAll(
-                () -> assertEquals(
-                        firstProduct,
-                        secondProduct
-                ),
-                () -> assertEquals(
-                        firstProduct.hashCode(),
-                        secondProduct.hashCode()
-                )
-        );
-    }
-
-    @Test
-    void shouldNotBeEqualWhenFirstPreviousPriceIsNull() {
-        Product firstProduct = new Product(
-                STORE,
-                NAME,
-                PRICE,
-                null,
-                DISCOUNT,
-                SOURCE_URL
-        );
-
-        Product secondProduct = createProduct();
-
-        assertNotEquals(
-                firstProduct,
-                secondProduct
-        );
-    }
-
-    @Test
-    void shouldNotBeEqualWhenSecondPreviousPriceIsNull() {
-        Product firstProduct = createProduct();
-
-        Product secondProduct = new Product(
-                STORE,
-                NAME,
-                PRICE,
-                null,
-                DISCOUNT,
-                SOURCE_URL
-        );
-
-        assertNotEquals(
-                firstProduct,
-                secondProduct
-        );
-    }
-
-    @Test
-    void shouldNotBeEqualWhenFirstDiscountIsNull() {
-        Product firstProduct = new Product(
-                STORE,
-                NAME,
-                PRICE,
-                PREVIOUS_PRICE,
-                null,
-                SOURCE_URL
-        );
-
-        Product secondProduct = createProduct();
-
-        assertNotEquals(
-                firstProduct,
-                secondProduct
-        );
-    }
-
-    @Test
-    void shouldNotBeEqualWhenSecondDiscountIsNull() {
-        Product firstProduct = createProduct();
-
-        Product secondProduct = new Product(
-                STORE,
-                NAME,
-                PRICE,
-                PREVIOUS_PRICE,
-                null,
-                SOURCE_URL
-        );
-
-        assertNotEquals(
-                firstProduct,
-                secondProduct
-        );
-    }
-
-    @Test
-    void shouldNotBeEqualWhenFirstSourceUrlIsNull() {
-        Product firstProduct = createProduct(null);
-        Product secondProduct = createProduct();
-
-        assertNotEquals(
-                firstProduct,
-                secondProduct
-        );
-    }
-
-    @Test
-    void shouldNotBeEqualWhenSecondSourceUrlIsNull() {
-        Product firstProduct = createProduct();
-        Product secondProduct = createProduct(null);
-
-        assertNotEquals(
-                firstProduct,
-                secondProduct
-        );
+        assertNotEquals(product, "Product");
     }
 
     @Test
     void shouldContainProductDataInToString() {
-        String result = createProduct().toString();
+        String result = createProduct(ID).toString();
 
         assertAll(
-                () -> assertTrue(
-                        result.contains(STORE)
-                ),
-                () -> assertTrue(
-                        result.contains(NAME)
-                ),
-                () -> assertTrue(
-                        result.contains(PRICE.toString())
-                ),
-                () -> assertTrue(
-                        result.contains(PREVIOUS_PRICE.toString())
-                ),
-                () -> assertTrue(
-                        result.contains(DISCOUNT)
-                ),
-                () -> assertTrue(
-                        result.contains(SOURCE_URL)
-                )
+                () -> assertTrue(result.contains(STORE)),
+                () -> assertTrue(result.contains(NAME)),
+                () -> assertTrue(result.contains(PRICE.toString())),
+                () -> assertTrue(result.contains(PREVIOUS_PRICE.toString())),
+                () -> assertTrue(result.contains(DISCOUNT)),
+                () -> assertTrue(result.contains(SOURCE_URL))
         );
     }
 
     @Test
     void shouldRepresentNullOptionalFieldsInToString() {
         Product product = new Product(
+                ID,
                 STORE,
                 NAME,
                 PRICE,
+                null,
                 null,
                 null,
                 null
@@ -635,30 +392,23 @@ class ProductTest {
         String result = product.toString();
 
         assertAll(
-                () -> assertTrue(
-                        result.contains("previousPrice=null")
-                ),
-                () -> assertTrue(
-                        result.contains("discount='null'")
-                ),
-                () -> assertTrue(
-                        result.contains("sourceUrl='null'")
-                )
+                () -> assertTrue(result.contains("previousPrice=null")),
+                () -> assertTrue(result.contains("discount='null'")),
+                () -> assertTrue(result.contains("sourceUrl='null'")),
+                () -> assertTrue(result.contains("imageUrl='null'"))
         );
     }
 
-    private Product createProduct() {
-        return createProduct(SOURCE_URL);
-    }
-
-    private Product createProduct(String sourceUrl) {
+    private Product createProduct(ProductId id) {
         return new Product(
+                id,
                 STORE,
                 NAME,
                 PRICE,
                 PREVIOUS_PRICE,
                 DISCOUNT,
-                sourceUrl
+                SOURCE_URL,
+                IMAGE_URL
         );
     }
 }

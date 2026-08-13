@@ -33,6 +33,7 @@
     <junit.version>5.11.0</junit.version>
     <mockito.version>5.14.2</mockito.version>
     <jacoco.version>0.8.12</jacoco.version>
+    <exec.mainClass>org.diegoreyes.webscraper.api.ProductApiApplication</exec.mainClass>
   </properties>
 
   <dependencyManagement>
@@ -168,6 +169,21 @@
                     <include>
                       org.diegoreyes.webscraper.domain.*
                     </include>
+                    <include>
+                      org.diegoreyes.webscraper.domain.model.*
+                    </include>
+                    <include>
+                      org.diegoreyes.webscraper.domain.valueobject.*
+                    </include>
+                    <include>
+                      org.diegoreyes.webscraper.domain.exception.*
+                    </include>
+                    <include>
+                      org.diegoreyes.webscraper.domain.repository.*
+                    </include>
+                    <include>
+                      org.diegoreyes.webscraper.domain.port.*
+                    </include>
                   </includes>
 
                   <limits>
@@ -194,6 +210,16 @@
           </execution>
 
         </executions>
+      </plugin>
+
+      <!-- Execute Java application via Maven CLI -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>3.5.0</version>
+        <configuration>
+          <mainClass>${exec.mainClass}</mainClass>
+        </configuration>
       </plugin>
 
     </plugins>

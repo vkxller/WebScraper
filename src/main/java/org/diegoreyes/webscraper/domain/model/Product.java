@@ -1,18 +1,94 @@
 package org.diegoreyes.webscraper.domain.model;
 
 import org.diegoreyes.webscraper.domain.exception.InvalidProductException;
+import org.diegoreyes.webscraper.domain.valueobject.Discount;
+import org.diegoreyes.webscraper.domain.valueobject.Price;
+import org.diegoreyes.webscraper.domain.valueobject.ProductId;
+import org.diegoreyes.webscraper.domain.valueobject.ProductName;
+import org.diegoreyes.webscraper.domain.valueobject.ProductUrl;
+import org.diegoreyes.webscraper.domain.valueobject.StoreName;
 
 import java.math.BigDecimal;
 import java.util.Objects;
 
+/**
+ * Product Entity (Aggregate Root) representing an e-commerce product.
+ * Follows DDD Tactical Patterns: unique identity (ProductId), lifecycle,
+ * and internal encapsulation using self-validating Value Objects.
+ */
 public final class Product {
 
-    private final String store;
-    private final String name;
-    private final BigDecimal price;
-    private final BigDecimal previousPrice;
-    private final String discount;
-    private final String sourceUrl;
+    private final ProductId id;
+    private final StoreName store;
+    private final ProductName name;
+    private final Price price;
+    private final Price previousPrice;
+    private final Discount discount;
+    private final ProductUrl sourceUrl;
+    private final ProductUrl imageUrl;
+
+    public Product(
+            ProductId id,
+            StoreName store,
+            ProductName name,
+            Price price,
+            Price previousPrice,
+            Discount discount,
+            ProductUrl sourceUrl,
+            ProductUrl imageUrl
+    ) {
+        this.id = Objects.requireNonNull(id, "Product ID must not be null");
+        this.store = Objects.requireNonNull(store, "Store must not be null");
+        this.name = Objects.requireNonNull(name, "Product name must not be null");
+        this.price = Objects.requireNonNull(price, "Price must not be null");
+        this.previousPrice = previousPrice;
+        this.discount = discount;
+        this.sourceUrl = sourceUrl;
+        this.imageUrl = imageUrl;
+    }
+
+    public Product(
+            ProductId id,
+            String store,
+            String name,
+            BigDecimal price,
+            BigDecimal previousPrice,
+            String discount,
+            String sourceUrl,
+            String imageUrl
+    ) {
+        this(
+                Objects.requireNonNull(id, "Product ID must not be null"),
+                new StoreName(store),
+                new ProductName(name),
+                new Price(price),
+                validatePreviousPrice(previousPrice),
+                Discount.of(discount),
+                ProductUrl.of(sourceUrl),
+                ProductUrl.of(imageUrl)
+        );
+    }
+
+    public Product(
+            String store,
+            String name,
+            BigDecimal price,
+            BigDecimal previousPrice,
+            String discount,
+            String sourceUrl,
+            String imageUrl
+    ) {
+        this(
+                ProductId.generate(),
+                store,
+                name,
+                price,
+                previousPrice,
+                discount,
+                sourceUrl,
+                imageUrl
+        );
+    }
 
     public Product(
             String store,
@@ -22,109 +98,85 @@ public final class Product {
             String discount,
             String sourceUrl
     ) {
-        this.store = validateRequiredText(
+        this(
                 store,
-                "Store must not be blank"
-        );
-
-        this.name = validateRequiredText(
                 name,
-                "Product name must not be blank"
-        );
-
-        this.price = validatePrice(
                 price,
-                "Price must be greater than or equal to zero"
+                previousPrice,
+                discount,
+                sourceUrl,
+                null
         );
-
-        this.previousPrice =
-                validatePreviousPrice(previousPrice);
-
-        this.discount =
-                normalizeOptionalText(discount);
-
-        /*
-         * The product URL is currently optional because
-         * Falabella generates it dynamically using JavaScript.
-         */
-        this.sourceUrl =
-                normalizeOptionalText(sourceUrl);
     }
 
-    private static String validateRequiredText(
-            String value,
-            String errorMessage
-    ) {
-        if (value == null || value.isBlank()) {
-            throw new InvalidProductException(
-                    errorMessage
-            );
-        }
-
-        return value.trim();
-    }
-
-    private static BigDecimal validatePrice(
-            BigDecimal value,
-            String errorMessage
-    ) {
-        if (value == null || value.signum() < 0) {
-            throw new InvalidProductException(
-                    errorMessage
-            );
-        }
-
-        return value;
-    }
-
-    private static BigDecimal validatePreviousPrice(
-            BigDecimal previousPrice
-    ) {
+    private static Price validatePreviousPrice(BigDecimal previousPrice) {
         if (previousPrice == null) {
             return null;
         }
-
         if (previousPrice.signum() < 0) {
-            throw new InvalidProductException(
-                    "Previous price must be greater than or equal to zero"
-            );
+            throw new InvalidProductException("Previous price must be greater than or equal to zero");
         }
-
-        return previousPrice;
+        return new Price(previousPrice);
     }
 
-    private static String normalizeOptionalText(
-            String value
-    ) {
-        if (value == null || value.isBlank()) {
-            return null;
-        }
-
-        return value.trim();
+    public ProductId getId() {
+        return id;
     }
 
-    public String getStore() {
+    public StoreName getStoreName() {
         return store;
     }
 
-    public String getName() {
+    public ProductName getProductName() {
         return name;
     }
 
-    public BigDecimal getPrice() {
+    public Price getProductPrice() {
         return price;
     }
 
-    public BigDecimal getPreviousPrice() {
+    public Price getProductPreviousPrice() {
         return previousPrice;
     }
 
-    public String getDiscount() {
+    public Discount getProductDiscount() {
         return discount;
     }
 
-    public String getSourceUrl() {
+    public ProductUrl getProductSourceUrl() {
         return sourceUrl;
+    }
+
+    public ProductUrl getProductImageUrl() {
+        return imageUrl;
+    }
+
+    public String getStore() {
+        return store.value();
+    }
+
+    public String getName() {
+        return name.value();
+    }
+
+    public BigDecimal getPrice() {
+        return price.amount();
+    }
+
+    public BigDecimal getPreviousPrice() {
+        return previousPrice != null ? previousPrice.amount() : null;
+    }
+
+    public String getDiscount() {
+        return discount != null ? discount.value() : null;
+    }
+
+    public String getSourceUrl() {
+        return sourceUrl != null ? sourceUrl.value() : null;
+    }
+
+    public String getImageUrl() {
+        return imageUrl != null ? imageUrl.value() : null;
     }
 
     @Override
@@ -133,48 +185,29 @@ public final class Product {
             return true;
         }
 
-        if (!(object instanceof Product product)) {
+        if (!(object instanceof Product other)) {
             return false;
         }
 
-        return store.equals(product.store)
-                && name.equals(product.name)
-                && price.equals(product.price)
-                && Objects.equals(
-                previousPrice,
-                product.previousPrice
-        )
-                && Objects.equals(
-                discount,
-                product.discount
-        )
-                && Objects.equals(
-                sourceUrl,
-                product.sourceUrl
-        );
+        return id.equals(other.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(
-                store,
-                name,
-                price,
-                previousPrice,
-                discount,
-                sourceUrl
-        );
+        return Objects.hash(id);
     }
 
     @Override
     public String toString() {
         return "Product{" +
-                "store='" + store + '\'' +
-                ", name='" + name + '\'' +
-                ", price=" + price +
-                ", previousPrice=" + previousPrice +
-                ", discount='" + discount + '\'' +
-                ", sourceUrl='" + sourceUrl + '\'' +
+                "id=" + id +
+                ", store='" + getStore() + '\'' +
+                ", name='" + getName() + '\'' +
+                ", price=" + getPrice() +
+                ", previousPrice=" + getPreviousPrice() +
+                ", discount='" + getDiscount() + '\'' +
+                ", sourceUrl='" + getSourceUrl() + '\'' +
+                ", imageUrl='" + getImageUrl() + '\'' +
                 '}';
     }
 }

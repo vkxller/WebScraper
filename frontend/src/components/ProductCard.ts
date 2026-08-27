@@ -4,17 +4,15 @@ export function generateProductCardHtml(
     product: Product
 ): string {
 
-    const hasUrl =
-        product.sourceUrl !== null && product.sourceUrl.trim().length > 0;
+    const rawUrl =
+        product.sourceUrl !== null && product.sourceUrl !== undefined && product.sourceUrl.trim().length > 0
+            ? product.sourceUrl.trim()
+            : `https://www.falabella.com/falabella-cl/search?Ntt=${encodeURIComponent(product.name)}`;
 
-    const cleanUrl =
-        hasUrl ? escapeHtml(product.sourceUrl!) : "#";
+    const cleanUrl = escapeHtml(rawUrl);
 
-    const linkAttr =
-        hasUrl ? `href="${cleanUrl}" target="_blank" rel="noopener noreferrer"` : "";
-
-    const imageInner =
-        product.imageUrl === null
+    const imageHtml =
+        product.imageUrl === null || product.imageUrl.trim().length === 0
             ? `
         <div class="product-image product-image--placeholder">
           📷 Sin imagen disponible
@@ -30,16 +28,6 @@ export function generateProductCardHtml(
         </div>
       `;
 
-    const imageHtml =
-        hasUrl
-            ? `<a ${linkAttr} class="card-image-link">${imageInner}</a>`
-            : imageInner;
-
-    const titleHtml =
-        hasUrl
-            ? `<h3 class="product-title"><a ${linkAttr} title="${escapeHtml(product.name)}">${escapeHtml(product.name)}</a></h3>`
-            : `<h3 class="product-title" title="${escapeHtml(product.name)}">${escapeHtml(product.name)}</h3>`;
-
     const previousPrice =
         product.previousPrice === null
             ? ""
@@ -50,7 +38,7 @@ export function generateProductCardHtml(
       `;
 
     const discount =
-        product.discount === null
+        product.discount === null || product.discount.trim().length === 0
             ? ""
             : `
         <span class="discount-badge">
@@ -58,20 +46,8 @@ export function generateProductCardHtml(
         </span>
       `;
 
-    const buttonHtml =
-        hasUrl
-            ? `
-        <a
-          ${linkAttr}
-          class="btn-product"
-        >
-          Ver en ${escapeHtml(product.store)} ↗
-        </a>
-      `
-            : "";
-
     return `
-    <article class="product-card ${hasUrl ? "product-card--clickable" : ""}" ${hasUrl ? `data-url="${cleanUrl}"` : ""}>
+    <article class="product-card">
       <div class="card-image-wrapper">
         ${imageHtml}
         ${discount}
@@ -82,7 +58,9 @@ export function generateProductCardHtml(
           🟢 ${escapeHtml(product.store)}
         </span>
 
-        ${titleHtml}
+        <h3 class="product-title" title="${escapeHtml(product.name)}">
+          ${escapeHtml(product.name)}
+        </h3>
 
         <div class="price-container">
           <span class="price-current">
@@ -91,7 +69,14 @@ export function generateProductCardHtml(
           ${previousPrice}
         </div>
 
-        ${buttonHtml}
+        <a
+          href="${cleanUrl}"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="btn-product"
+        >
+          Ver en ${escapeHtml(product.store)} ↗
+        </a>
       </div>
     </article>
   `;

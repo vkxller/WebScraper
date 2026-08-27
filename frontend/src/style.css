@@ -164,9 +164,28 @@ body {
     font-size: 1.1rem;
 }
 
-/* TARJETA DE PRODUCTO COMPACTA Y MODERNA */
+.product-card--clickable {
+    cursor: pointer;
+}
+
+.card-image-link {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    text-decoration: none;
+}
+
+.product-title a {
+    color: inherit;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.product-card:hover .product-title a {
+    color: var(--primary-blue);
+}
+
 .product-card {
-    background: var(--card-bg);
     border: 1px solid var(--border-color);
     border-radius: var(--radius);
     overflow: hidden;

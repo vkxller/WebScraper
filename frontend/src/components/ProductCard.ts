@@ -4,7 +4,16 @@ export function generateProductCardHtml(
     product: Product
 ): string {
 
-    const image =
+    const hasUrl =
+        product.sourceUrl !== null && product.sourceUrl.trim().length > 0;
+
+    const cleanUrl =
+        hasUrl ? escapeHtml(product.sourceUrl!) : "#";
+
+    const linkAttr =
+        hasUrl ? `href="${cleanUrl}" target="_blank" rel="noopener noreferrer"` : "";
+
+    const imageInner =
         product.imageUrl === null
             ? `
         <div class="product-image product-image--placeholder">
@@ -20,6 +29,16 @@ export function generateProductCardHtml(
           />
         </div>
       `;
+
+    const imageHtml =
+        hasUrl
+            ? `<a ${linkAttr} class="card-image-link">${imageInner}</a>`
+            : imageInner;
+
+    const titleHtml =
+        hasUrl
+            ? `<h3 class="product-title"><a ${linkAttr} title="${escapeHtml(product.name)}">${escapeHtml(product.name)}</a></h3>`
+            : `<h3 class="product-title" title="${escapeHtml(product.name)}">${escapeHtml(product.name)}</h3>`;
 
     const previousPrice =
         product.previousPrice === null
@@ -39,24 +58,22 @@ export function generateProductCardHtml(
         </span>
       `;
 
-    const sourceUrl =
-        product.sourceUrl === null
-            ? ""
-            : `
+    const buttonHtml =
+        hasUrl
+            ? `
         <a
-          href="${escapeHtml(product.sourceUrl)}"
-          target="_blank"
-          rel="noopener noreferrer"
+          ${linkAttr}
           class="btn-product"
         >
-          Ver producto ↗
+          Ver en ${escapeHtml(product.store)} ↗
         </a>
-      `;
+      `
+            : "";
 
     return `
-    <article class="product-card">
+    <article class="product-card ${hasUrl ? "product-card--clickable" : ""}" ${hasUrl ? `data-url="${cleanUrl}"` : ""}>
       <div class="card-image-wrapper">
-        ${image}
+        ${imageHtml}
         ${discount}
       </div>
 
@@ -65,9 +82,7 @@ export function generateProductCardHtml(
           🟢 ${escapeHtml(product.store)}
         </span>
 
-        <h3 class="product-title" title="${escapeHtml(product.name)}">
-          ${escapeHtml(product.name)}
-        </h3>
+        ${titleHtml}
 
         <div class="price-container">
           <span class="price-current">
@@ -76,7 +91,7 @@ export function generateProductCardHtml(
           ${previousPrice}
         </div>
 
-        ${sourceUrl}
+        ${buttonHtml}
       </div>
     </article>
   `;

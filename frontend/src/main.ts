@@ -249,10 +249,40 @@ function escapeHtml(value: string): string {
         .replaceAll("'", "&#039;");
 }
 
+function setupCatalogClickListener(): void {
+    const container = document.getElementById("contenedor-catalogo");
+    if (container === null) {
+        return;
+    }
+
+    container.addEventListener("click", (event: MouseEvent) => {
+        const target = event.target as HTMLElement | null;
+        if (target === null) {
+            return;
+        }
+
+        const clickableCard = target.closest(".product-card--clickable") as HTMLElement | null;
+        if (clickableCard === null) {
+            return;
+        }
+
+        const url = clickableCard.dataset.url;
+        if (!url) {
+            return;
+        }
+
+        const isDirectAnchor = target.closest("a") !== null;
+        if (!isDirectAnchor) {
+            window.open(url, "_blank", "noopener,noreferrer");
+        }
+    });
+}
+
 document.addEventListener(
     "DOMContentLoaded",
     () => {
         setupSearchForm();
+        setupCatalogClickListener();
         void loadCatalog();
     }
 );

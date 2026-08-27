@@ -2,49 +2,48 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8" />
-    <meta
-            name="viewport"
-            content="width=device-width, initial-scale=1.0"
-    />
-
-    <title>Web Scraper - Buscador Falabella</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WebScraper - Buscador Falabella</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 
 <body>
-<main>
-    <h1>Buscador de Productos Falabella</h1>
+<header class="app-header">
+    <div class="header-content">
+        <div class="brand">
+            <span class="brand-icon">🛒</span>
+            <h1>WebScraper <span class="brand-sub">Falabella</span></h1>
+        </div>
+        <p class="brand-tagline">Buscador y comparador de productos en tiempo real</p>
+    </div>
+</header>
 
-    <form id="form-productos">
-        <label for="txt-busqueda">
-            Buscar cualquier producto
-        </label>
+<main class="app-container">
+    <section class="search-section">
+        <form id="form-productos" class="search-form">
+            <div class="input-wrapper">
+                <span class="search-icon">🔍</span>
+                <input
+                        id="txt-busqueda"
+                        name="busqueda"
+                        type="text"
+                        placeholder="Ej: zapatillas, celulares, notebook, ropa..."
+                        aria-label="Buscar cualquier producto"
+                />
+            </div>
+            <button type="submit" class="btn-search">
+                Buscar
+            </button>
+        </form>
+    </section>
 
-        <input
-                id="txt-busqueda"
-                name="busqueda"
-                type="text"
-                placeholder="Ej: zapatillas, calcetines, celulares, juguetes, lenovo..."
-        />
+    <div id="bloque-error" class="error-banner" role="alert"></div>
 
-        <button type="submit">
-            Buscar
-        </button>
-    </form>
-
-    <p
-            id="bloque-error"
-            role="alert"
-    ></p>
-
-    <section
-            id="contenedor-catalogo"
-            aria-live="polite"
-    ></section>
+    <section id="contenedor-catalogo" class="catalog-grid" aria-live="polite"></section>
 </main>
 
-<script
-        type="module"
-        src="/src/main.ts"
-></script>
+<script type="module" src="/src/main.ts"></script>
 </body>
 </html>

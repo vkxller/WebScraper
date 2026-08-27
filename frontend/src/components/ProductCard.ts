@@ -8,7 +8,7 @@ export function generateProductCardHtml(
         product.imageUrl === null
             ? `
         <div class="product-image product-image--placeholder">
-          Sin imagen disponible
+          📷 Sin imagen disponible
         </div>
       `
             : `
@@ -25,20 +25,18 @@ export function generateProductCardHtml(
         product.previousPrice === null
             ? ""
             : `
-        <p>
-          Precio anterior:
+        <span class="price-previous">
           $${product.previousPrice.toLocaleString("es-CL")}
-        </p>
+        </span>
       `;
 
     const discount =
         product.discount === null
             ? ""
             : `
-        <p>
-          Descuento:
-          ${product.discount}
-        </p>
+        <span class="discount-badge">
+          ${escapeHtml(product.discount)}
+        </span>
       `;
 
     const sourceUrl =
@@ -49,34 +47,37 @@ export function generateProductCardHtml(
           href="${escapeHtml(product.sourceUrl)}"
           target="_blank"
           rel="noopener noreferrer"
+          class="btn-product"
         >
-          Ver producto
+          Ver producto ↗
         </a>
       `;
 
     return `
-    <article>
-      ${image}
+    <article class="product-card">
+      <div class="card-image-wrapper">
+        ${image}
+        ${discount}
+      </div>
 
-      <h2>
-        ${escapeHtml(product.name)}
-      </h2>
+      <div class="card-content">
+        <span class="store-badge">
+          🟢 ${escapeHtml(product.store)}
+        </span>
 
-      <p>
-        Tienda:
-        ${escapeHtml(product.store)}
-      </p>
+        <h3 class="product-title" title="${escapeHtml(product.name)}">
+          ${escapeHtml(product.name)}
+        </h3>
 
-      <p>
-        Precio:
-        $${product.price.toLocaleString("es-CL")}
-      </p>
+        <div class="price-container">
+          <span class="price-current">
+            $${product.price.toLocaleString("es-CL")}
+          </span>
+          ${previousPrice}
+        </div>
 
-      ${previousPrice}
-
-      ${discount}
-
-      ${sourceUrl}
+        ${sourceUrl}
+      </div>
     </article>
   `;
 }

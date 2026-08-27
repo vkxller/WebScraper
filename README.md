@@ -3,6 +3,10 @@
 <div align="center">
 
 ![Java](https://img.shields.io/badge/Java-21-007396?style=for-the-badge&logo=openjdk&logoColor=white)
+![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.4-6DB33F?style=for-the-badge&logo=springboot&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![OpenAPI / Swagger](https://img.shields.io/badge/OpenAPI-Swagger_UI-85EA2D?style=for-the-badge&logo=swagger&logoColor=black)
 ![Maven](https://img.shields.io/badge/Maven-3.9-C71A36?style=for-the-badge&logo=apachemaven&logoColor=white)
 ![Jsoup](https://img.shields.io/badge/Jsoup-HTML%20Parser-5A29E4?style=for-the-badge)
 ![TypeScript](https://img.shields.io/badge/TypeScript-Frontend-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
@@ -18,22 +22,29 @@
 
 ## 📖 Overview
 
-**WebScraper** is a Java 21 application designed to extract product information from the Falabella Chile website.
+**WebScraper** is an enterprise-grade Java 21 microservice designed to extract, persist, and visualize product information from Falabella Chile in real time.
 
-The project follows **Clean Architecture** principles, keeping business logic independent from external libraries and infrastructure components. This results in a solution that is maintainable, testable and prepared for future expansion.
 
-Starting with **Milestone 2**, the project was extended with a lightweight HTTP API and a **TypeScript + Vite** web frontend, allowing the scraped products to be browsed and searched directly from the browser.
+The project is built on **Clean Architecture** and **Domain-Driven Design (DDD)** principles, keeping business domain logic strictly independent from frameworks, persistence technologies, and external infrastructure.
 
-The current implementation extracts:
+Starting with **Milestone 4**, the backend is powered by **Spring Boot 3**, featuring:
+- **Semantic REST API**: Full CRUD and scraping endpoints (`GET`, `POST`, `DELETE`).
+- **Centralized Error Handling**: `@RestControllerAdvice` interceptor returning unified JSON error payloads (`ErrorResponseDto`).
+- **Real Persistence & Virtualization**: PostgreSQL 16 database orchestrated via `docker-compose.yml` with Spring Data JPA and Hibernate ORM.
+- **OpenAPI 3 / Swagger-UI**: Interactive API documentation restricted hermetically to the development profile (`dev`) and locked in production (`prod`).
+- **Universal Live Search & Image Extraction**: Search any product across all of Falabella Chile and view responsive product images.
+- **TypeScript + Vite Web Frontend**: Reactive client interface with real-time search, image rendering, and state management.
 
-- Store name
-- Product name
-- Current price
-- Previous price, when available
-- Discount, when available
-- Source URL, when available
+The current implementation extracts and persists:
 
-The long-term objective is to evolve the project into a complete product and price comparison platform.
+- Unique product identifier (`id`)
+- Store name (`store`)
+- Product name (`name`)
+- Current price (`price`)
+- Previous price (`previousPrice`), when available
+- Discount percentage (`discount`), when available
+- Product source URL (`sourceUrl`), when available
+- Product image URL (`imageUrl`), when available
 
 ---
 
@@ -42,48 +53,53 @@ The long-term objective is to evolve the project into a complete product and pri
 <table>
   <tr>
     <td>🌐</td>
-    <td><strong>HTML download</strong></td>
-    <td>Retrieves product pages using Jsoup.</td>
+    <td><strong>HTML Download & Parsing</strong></td>
+    <td>Retrieves web pages via Jsoup with custom browser headers, timeout resilience, and image resolution.</td>
   </tr>
   <tr>
     <td>🔍</td>
-    <td><strong>Product parsing</strong></td>
-    <td>Extracts relevant product information from Falabella HTML.</td>
+    <td><strong>Universal Live Search</strong></td>
+    <td>Queries any keyword across Falabella Chile in real time (e.g., sneakers, laptops, toys, phones).</td>
   </tr>
   <tr>
     <td>🧱</td>
-    <td><strong>Clean Architecture</strong></td>
-    <td>Separates domain, application, ports and infrastructure.</td>
+    <td><strong>Clean Architecture & DDD</strong></td>
+    <td>Pure domain model with Aggregate Root Entity (`Product`) and self-validating Value Objects (`record`).</td>
   </tr>
   <tr>
-    <td>✅</td>
-    <td><strong>Domain validation</strong></td>
-    <td>Prevents the creation of invalid products.</td>
+    <td>💾</td>
+    <td><strong>PostgreSQL & Spring Data JPA</strong></td>
+    <td>Persistent relational storage with JPA entity mapping, automated migrations, and transactions.</td>
   </tr>
   <tr>
-    <td>🧪</td>
-    <td><strong>Unit testing</strong></td>
-    <td>Uses JUnit 5 and Mockito for isolated tests.</td>
-  </tr>
-  <tr>
-    <td>📊</td>
-    <td><strong>Code coverage</strong></td>
-    <td>Generates coverage reports with JaCoCo.</td>
+    <td>🐳</td>
+    <td><strong>Docker Compose Virtualization</strong></td>
+    <td>Pre-configured PostgreSQL 16 Alpine container with persistent volume and automatic healthchecks.</td>
   </tr>
   <tr>
     <td>🔌</td>
-    <td><strong>HTTP API</strong></td>
-    <td>Exposes the scraped products through a lightweight Java API.</td>
+    <td><strong>Semantic REST Endpoints</strong></td>
+    <td>RESTful routes for querying, scraping, retrieving by ID, and deleting products.</td>
+  </tr>
+  <tr>
+    <td>🛡️</td>
+    <td><strong>Centralized Error Interceptor</strong></td>
+    <td><code>@RestControllerAdvice</code> capturing domain and infrastructure exceptions with unified JSON responses.</td>
+  </tr>
+  <tr>
+    <td>📑</td>
+    <td><strong>Swagger UI & OpenAPI 3</strong></td>
+    <td>Interactive API documentation enabled in <code>dev</code> profile and strictly blocked in <code>prod</code>.</td>
   </tr>
   <tr>
     <td>💻</td>
-    <td><strong>Web interface</strong></td>
-    <td>Consumes the API from a TypeScript + Vite frontend.</td>
+    <td><strong>TypeScript + Vite Web UI</strong></td>
+    <td>Fast, reactive frontend consuming the REST API with dynamic catalog rendering.</td>
   </tr>
   <tr>
-    <td>🔎</td>
-    <td><strong>Search</strong></td>
-    <td>Allows filtering products by name directly in the browser.</td>
+    <td>🧪</td>
+    <td><strong>Automated Testing & JaCoCo</strong></td>
+    <td>178 unit and integration tests with JUnit 5, Mockito, MockMvc, and 100% domain coverage.</td>
   </tr>
 </table>
 
@@ -93,19 +109,20 @@ The long-term objective is to evolve the project into a complete product and pri
 
 | Technology | Purpose |
 |---|---|
-| Java 21 | Main programming language / backend |
-| Maven | Build and dependency management |
-| Jsoup | HTML download and parsing |
-| JUnit 5 | Unit testing |
-| Mockito | Test doubles and dependency isolation |
-| JaCoCo | Code coverage reports |
-| TypeScript | Frontend logic |
-| Vite | Frontend development and build tool |
-| HTML5 | Frontend markup |
-| CSS | Frontend styling |
-| Node.js / npm | Frontend tooling and package management |
-| Git | Version control |
-| GitHub | Source code hosting |
+| Java 21 | Core programming language (LTS) |
+| Spring Boot 3.4+ | Microservice framework and dependency injection |
+| Spring Data JPA / Hibernate | Object-Relational Mapping (ORM) and persistence |
+| PostgreSQL 16 | Relational database engine |
+| Docker & Docker Compose | Container virtualization for local database |
+| Springdoc OpenAPI / Swagger UI | OpenAPI 3 specification and interactive documentation |
+| Jsoup | HTML downloading and DOM selector parsing |
+| JUnit 5 | Unit and integration testing |
+| Mockito & MockMvc | Test doubles, mocking, and REST endpoint testing |
+| H2 Database | Fast, isolated in-memory database for automated tests |
+| JaCoCo | Automated code coverage auditing and enforcement |
+| TypeScript | Strongly-typed frontend logic in strict mode |
+| Vite | Frontend development server and production bundler |
+| Maven 3.9+ | Build and lifecycle management |
 
 ---
 
@@ -116,640 +133,324 @@ src
 ├── main
 │   ├── java
 │   │   └── org.diegoreyes.webscraper
-│   │       ├── api
-│   │       │   └── ProductApiApplication.java
+│   │       ├── WebScraperApplication.java            // @SpringBootApplication Entry Point
 │   │       │
 │   │       ├── application
+│   │       │   ├── usecase
+│   │       │   │   ├── DeleteProductByIdUseCase.java
+│   │       │   │   ├── GetAllProductsUseCase.java
+│   │       │   │   ├── GetProductByIdUseCase.java
+│   │       │   │   └── ScrapeAndSaveProductsUseCase.java
 │   │       │   └── ProductScraperService.java
 │   │       │
 │   │       ├── domain
 │   │       │   ├── exception
-│   │       │   └── model
-│   │       │       └── Product.java
+│   │       │   │   ├── InvalidProductException.java
+│   │       │   │   └── ProductNotFoundException.java
+│   │       │   ├── model
+│   │       │   │   └── Product.java                  // DDD Aggregate Root Entity
+│   │       │   ├── repository
+│   │       │   │   └── ProductRepository.java        // Domain Repository Interface
+│   │       │   └── valueobject
+│   │       │       ├── Discount.java
+│   │       │       ├── Price.java
+│   │       │       ├── ProductId.java
+│   │       │       ├── ProductName.java
+│   │       │       ├── ProductUrl.java
+│   │       │       └── StoreName.java
 │   │       │
 │   │       ├── infrastructure
 │   │       │   ├── client
 │   │       │   │   └── JsoupHtmlClient.java
-│   │       │   └── parser
-│   │       │       └── FalabellaProductParser.java
+│   │       │   ├── configuration
+│   │       │   │   ├── BeanConfiguration.java        // Spring Bean Wiring
+│   │       │   │   └── OpenApiConfiguration.java     // @Profile("dev") Swagger Config
+│   │       │   ├── parser
+│   │       │   │   └── FalabellaProductParser.java
+│   │       │   ├── persistence
+│   │       │   │   ├── entity
+│   │       │   │   │   └── ProductJpaEntity.java     // JPA @Entity & @Table
+│   │       │   │   ├── mapper
+│   │       │   │   │   └── ProductJpaMapper.java     // Domain <-> JPA Entity Mapper
+│   │       │   │   ├── repository
+│   │       │   │   │   └── SpringDataProductRepository.java // JpaRepository
+│   │       │   │   └── PostgreSqlProductRepository.java     // Implements ProductRepository
+│   │       │   ├── repository
+│   │       │   │   └── InMemoryProductRepository.java
+│   │       │   └── web
+│   │       │       ├── controller
+│   │       │       │   └── ProductRestController.java   // Semantic REST Controller
+│   │       │       ├── dto
+│   │       │       │   ├── ErrorResponseDto.java        // Unified Error JSON
+│   │       │       │   ├── ProductResponseDto.java      // Product JSON Response
+│   │       │       │   └── ScrapeRequestDto.java        // Scrape Request Payload
+│   │       │       └── exception
+│   │       │           └── GlobalExceptionHandler.java  // Centralized @RestControllerAdvice
 │   │       │
-│   │       ├── port
-│   │       │   ├── HtmlClient.java
-│   │       │   └── ProductParser.java
-│   │       │
-│   │       └── WebScraperApplication.java
+│   │       └── port
+│   │           ├── HtmlClient.java
+│   │           └── ProductParser.java
 │   │
 │   └── resources
+│       ├── application.yml                           // Default Configuration (dev profile active)
+│       ├── application-dev.yml                       // Dev Profile (PostgreSQL + Swagger Enabled)
+│       └── application-prod.yml                      // Prod Profile (PostgreSQL + Swagger Disabled)
 │
 └── test
-    └── java
-        └── org.diegoreyes.webscraper
+    ├── java
+    │   └── org.diegoreyes.webscraper
+    │       ├── application
+    │       │   ├── usecase
+    │       │   │   ├── DeleteProductByIdUseCaseTest.java
+    │       │   │   ├── GetAllProductsUseCaseTest.java
+    │       │   │   ├── GetProductByIdUseCaseTest.java
+    │       │   │   └── ScrapeAndSaveProductsUseCaseTest.java
+    │       │   └── ProductScraperServiceTest.java
+    │       ├── domain
+    │       │   ├── exception
+    │       │   │   ├── InvalidProductExceptionTest.java
+    │       │   │   └── ProductNotFoundExceptionTest.java
+    │       │   ├── model
+    │       │   │   └── ProductTest.java
+    │       │   └── valueobject
+    │       │       ├── DiscountTest.java
+    │       │       ├── PriceTest.java
+    │       │       ├── ProductIdTest.java
+    │       │       ├── ProductNameTest.java
+    │       │       ├── ProductUrlTest.java
+    │       │       └── StoreNameTest.java
+    │       └── infrastructure
+    │           ├── client
+    │           │   └── JsoupHtmlClientTest.java
+    │           ├── configuration
+    │           │   ├── BeanConfigurationTest.java
+    │           │   └── OpenApiConfigurationTest.java
+    │           ├── parser
+    │           │   └── FalabellaProductParserTest.java
+    │           ├── persistence
+    │           │   ├── mapper
+    │           │   │   └── ProductJpaMapperTest.java
+    │           │   └── PostgreSqlProductRepositoryTest.java
+    │           ├── repository
+    │           │   └── InMemoryProductRepositoryTest.java
+    │           └── web
+    │               ├── controller
+    │               │   └── ProductRestControllerTest.java
+    │               └── exception
+    │                   └── GlobalExceptionHandlerTest.java
+    │
+    └── resources
+        └── application.yml                           // In-memory H2 Database for fast isolated tests
+
+docker-compose.yml                                    // PostgreSQL 16 Container Orchestration
 
 frontend
 ├── src
 │   ├── components
 │   │   └── ProductCard.ts
-│   │
 │   ├── models
 │   │   └── product.ts
-│   │
 │   ├── main.ts
 │   └── style.css
-│
 ├── index.html
 ├── package.json
-├── package-lock.json
-├── tsconfig.json
 └── vite.config.ts
 ```
 
 ---
 
-## 🏛️ Architecture
+## 🏛️ Clean Architecture & DDD Flow
 
-The application uses a Clean Architecture approach based on dependency inversion.
-
-```text
-┌───────────────────────────────────────────┐
-│           WebScraperApplication           │
-│              Entry point                  │
-└────────────────────┬──────────────────────┘
-                     │
-                     ▼
-┌───────────────────────────────────────────┐
-│          ProductScraperService            │
-│            Application logic              │
-└───────────────┬───────────────┬───────────┘
-                │               │
-                ▼               ▼
-       ┌────────────────┐ ┌─────────────────┐
-       │   HtmlClient   │ │ ProductParser   │
-       │      Port      │ │      Port       │
-       └───────┬────────┘ └────────┬────────┘
-               │                   │
-               ▼                   ▼
-     ┌───────────────────┐ ┌──────────────────────────┐
-     │ JsoupHtmlClient   │ │ FalabellaProductParser  │
-     │ Infrastructure    │ │ Infrastructure           │
-     └───────────────────┘ └────────────┬─────────────┘
-                                        │
-                                        ▼
-                              ┌─────────────────┐
-                              │     Product     │
-                              │     Domain      │
-                              └─────────────────┘
-```
-
-### Dependency flow
+The application isolates business invariants from delivery mechanisms and data storage:
 
 ```text
-Infrastructure → Ports ← Application → Domain
+┌────────────────────────────────────────────────────────┐
+│               Delivery / Presentation                  │
+│       ProductRestController (Spring Web MVC)           │
+│       GlobalExceptionHandler (@RestControllerAdvice)   │
+│       Swagger UI (OpenAPI 3 / Dev Profile Only)        │
+└───────────────────────────┬────────────────────────────┘
+                            │
+                            ▼
+┌────────────────────────────────────────────────────────┐
+│                   Application Layer                    │
+│   ScrapeAndSaveProductsUseCase / GetAllProductsUseCase │
+│   GetProductByIdUseCase / DeleteProductByIdUseCase     │
+│                 ProductScraperService                  │
+└───────────────┬────────────────────────┬───────────────┘
+                │                        │
+                ▼                        ▼
+       ┌────────────────┐       ┌─────────────────┐       ┌───────────────────┐
+       │   HtmlClient   │       │  ProductParser  │       │ ProductRepository │
+       │      Port      │       │      Port       │       │  Domain Contract  │
+       └───────┬────────┘       └────────┬────────┘       └─────────┬─────────┘
+               │                         │                          │
+               ▼                         ▼                          ▼
+     ┌───────────────────┐     ┌──────────────────────────┐ ┌───────────────────────┐
+     │ JsoupHtmlClient   │     │ FalabellaProductParser   │ │PostgreSqlProductRepo..│
+     │  Infrastructure   │     │      Infrastructure      │ │    Infrastructure     │
+     └───────────────────┘     └────────────┬─────────────┘ └───────────┬───────────┘
+                                            │                           │
+                                            ▼                           ▼
+                                ┌───────────────────────┐   ┌───────────────────────┐
+                                │     Product Entity    │   │ SpringDataProductRepo │
+                                │  Value Objects (DDD)  │   │     (PostgreSQL)      │
+                                │     Domain Core       │   │    Infrastructure     │
+                                └───────────────────────┘   └───────────────────────┘
 ```
-
-Business rules remain completely independent from the infrastructure layer.
-The domain layer does not depend on Jsoup, Maven, frameworks or infrastructure implementations.
-
-### Frontend / Backend communication
-
-Starting with Milestone 2, the API reuses the existing `ProductScraperService`, avoiding any duplication of the scraping logic.
-
-```text
-Falabella
-    ↓
-Jsoup
-    ↓
-ProductScraperService
-    ↓
-Java HTTP API
-    ↓
-fetch()
-    ↓
-TypeScript
-    ↓
-Web Interface
-```
-
-During development, Vite uses a proxy for `/api` requests:
-
-```text
-Frontend
-http://localhost:5173
-        │
-        │ /api/products
-        ↓
-Vite Proxy
-        │
-        ↓
-Java API
-http://localhost:8080
-```
-
-This allows the frontend to call `/api/products` directly, without hard-coding the backend address in the code.
 
 ---
 
-## 📜 Business Rules
+## 🔌 REST API Specification
 
-The application currently follows these business rules:
+### Endpoints
 
-1. Every product must have a valid store name.
-2. Every product must have a valid product name.
-3. Every product must have a valid current price.
-4. The current price cannot be negative.
-5. The previous price is optional.
-6. The previous price cannot be negative when present.
-7. Discount information is optional.
-8. The product source URL is optional.
-9. Invalid products are rejected through domain validation.
-10. Business rules must remain independent from infrastructure components.
+| Verb | Path | Description | Status Codes |
+|---|---|---|:---:|
+| `GET` | `/api/products` | Retrieve all products or search live (`?search=zapatillas`) | `200 OK`, `500` |
+| `GET` | `/api/products/{id}` | Retrieve a single product by UUID identifier | `200 OK`, `400`, `404` |
+| `POST` | `/api/products/scrape` | Trigger a scraping operation with custom keyword/URL | `201 Created`, `400`, `502` |
+| `DELETE` | `/api/products/{id}` | Delete a single product by UUID identifier | `204 No Content`, `404` |
+| `DELETE` | `/api/products` | Clear all stored products | `204 No Content` |
 
-These rules are centralized in the domain model instead of being distributed across parsers or clients.
+### Unified Error JSON (`ErrorResponseDto`)
 
----
+All domain and technical exceptions are captured by `@RestControllerAdvice` and transformed into consistent JSON responses:
 
-## 🧠 Design Decisions
-
-### Clean Architecture
-
-Clean Architecture was selected to keep the project independent from specific frameworks and technical implementations.
-
-This allows infrastructure components to be replaced without modifying business logic.
-
-### Ports and Adapters
-
-The application defines ports such as:
-
-- `HtmlClient`
-- `ProductParser`
-
-Their implementations are located in the infrastructure layer:
-
-- `JsoupHtmlClient`
-- `FalabellaProductParser`
-
-This design allows future clients and parsers to be added without changing the application service.
-
-### Constructor Injection
-
-Dependencies are provided through constructors.
-
-This avoids hidden dependencies and simplifies unit testing.
-
-### Domain Validation
-
-Product validation is performed when domain objects are created.
-
-This guarantees that an invalid `Product` cannot exist inside the application.
-
-### Optional Product Information
-
-Some Falabella products do not contain:
-
-- Previous price
-- Discount
-- Product URL in the initial HTML response
-
-For that reason, these fields are optional.
-
-Falabella may inject some links dynamically through JavaScript after the initial HTML document is loaded. Jsoup does not execute JavaScript, so the source URL may not always be available.
-
-### Immutable Results
-
-The application service returns product collections that cannot be modified externally.
-
-This protects the scraper result and reduces unintended state changes.
-
-### API reuse
-
-The HTTP API exposed in Milestone 2 wraps the existing `ProductScraperService` instead of duplicating scraping logic, keeping a single source of truth for how products are extracted.
-
----
-
-## 🧩 Architecture Principles
-
-The project follows these software engineering principles:
-
-- Clean Architecture
-- Separation of Concerns
-- Dependency Inversion Principle
-- Single Responsibility Principle
-- Open/Closed Principle
-- Low coupling
-- High cohesion
-- Explicit dependencies
-- Testability by design
-- Maintainability
-- Extensibility
-
----
-
-## 🚀 Getting Started
-
-### Prerequisites
-
-Make sure the following tools are installed:
-
-```text
-Java 21
-Maven 3.9 or newer
-Node.js
-npm
-Git
+```json
+{
+  "timestamp": "2026-08-16T23:45:00",
+  "status": 404,
+  "error": "Not Found",
+  "message": "Product with ID 550e8400-e29b-41d4-a716-446655440000 was not found",
+  "path": "/api/products/550e8400-e29b-41d4-a716-446655440000"
+}
 ```
 
-Verify the installations:
+---
+
+## 📑 OpenAPI Documentation & Profile Segregation
+
+- **Development Profile (`dev`)**:
+  - Swagger UI is fully enabled and accessible at:
+    👉 **`http://localhost:8080/swagger-ui.html`**
+  - OpenAPI 3 JSON docs available at: **`http://localhost:8080/v3/api-docs`**
+- **Production Profile (`prod`)**:
+  - Swagger UI and `/v3/api-docs` endpoints are **hermetically disabled** to protect microservice security.
+
+To start with the production profile:
+```bash
+mvn spring-boot:run "-Dspring-boot.run.profiles=prod"
+```
+
+---
+
+## 🐳 Virtualization with Docker Compose
+
+To start the local PostgreSQL 16 database:
 
 ```bash
-java -version
-mvn -version
-node -v
-npm -v
-git --version
+docker compose up -d
 ```
+
+To stop the container:
+
+```bash
+docker compose down
+```
+
+### PostgreSQL Credentials:
+- **Host:** `localhost:5432`
+- **Database:** `webscraper_db`
+- **User:** `postgres`
+- **Password:** `postgrespassword`
 
 ---
 
-## ▶️ Running the Project
+## 🚀 Running the Project
 
-### Compile the application
-
-```bash
-mvn clean compile
-```
-
-### Run all tests
+### 1. Start PostgreSQL (Docker)
 
 ```bash
-mvn clean test
+docker compose up -d
 ```
 
-### Validate the complete project
+### 2. Compile and Verify Tests & JaCoCo Coverage
 
 ```bash
 mvn clean verify
 ```
 
-### Generate the JaCoCo report
+### 3. Run the Spring Boot Microservice
 
 ```bash
-mvn clean test jacoco:report
+mvn spring-boot:run
 ```
+> The API will start at `http://localhost:8080` with the `dev` profile active by default.
 
-The generated report can be found at:
-
-```text
-target/site/jacoco/index.html
-```
-
-### Run the scraper
-
-```bash
-mvn exec:java
-```
-
-### Run the backend API
-
-```bash
-mvn exec:java "-Dexec.mainClass=org.diegoreyes.webscraper.api.ProductApiApplication"
-```
-
-The API will be available at:
-
-```text
-http://localhost:8080
-```
-
-Main endpoint:
-
-```text
-http://localhost:8080/api/products
-```
-
-### Install frontend dependencies
+### 4. Run the TypeScript + Vite Frontend
 
 In a separate terminal:
 
 ```bash
 cd frontend
 npm install
-```
-
-### Run the frontend
-
-From the `frontend` directory:
-
-```bash
 npm run dev
 ```
-
-Vite will start at:
-
-```text
-http://localhost:5173
-```
-
-Open that address in the browser.
-
-### Build the frontend for production
-
-```bash
-npm run build
-```
-
-This generates the production bundle in:
-
-```text
-frontend/dist/
-```
-
-The build step verifies that TypeScript compiles correctly before generating the bundle with Vite.
+> Open `http://localhost:5173` in your browser.
 
 ---
 
-## 🧪 Testing
-
-The project includes unit tests for the main components and behaviors.
-
-| Test area | Validations |
-|---|---|
-| Domain model | Required attributes and invalid values |
-| Product equality | `equals()` and `hashCode()` behavior |
-| Application service | Downloading, parsing and returning products |
-| Product parser | HTML extraction and optional attributes |
-| HTTP client | HTML retrieval and error handling |
-| Domain exceptions | Validation failure behavior |
-
-JUnit 5 is used as the testing framework, while Mockito isolates dependencies in application-level tests. JaCoCo is used to measure code coverage.
-
----
-
-## 📊 Code Quality
-
-The project emphasizes code quality through:
-
-- Unit tests with JUnit 5
-- Dependency isolation with Mockito
-- Code coverage reports with JaCoCo
-- Complete domain validation coverage
-- Full branch coverage in the domain layer
-- Constructor dependency injection
-- Consistent package organization
-- Descriptive class and method names
-- Separation between business and infrastructure logic
-- Automated Maven verification
-- TypeScript strict mode on the frontend
-
-### Current domain coverage
+## 🧪 Testing & Code Quality
 
 <div align="center">
 
-| Layer | Instruction Coverage | Branch Coverage |
+| Metric | Result | Target |
 |---|:---:|:---:|
-| Domain Model | 100% | 100% |
-| Domain Exceptions | 100% | 100% |
+| **Total Automated Tests** | **178 passing** | 100% |
+| **Domain Model & Entities Coverage** | **100%** | 100% |
+| **Domain Value Objects Coverage** | **100%** | 100% |
+| **Domain Exceptions Coverage** | **100%** | 100% |
+| **Domain Repository Contracts Coverage** | **100%** | 100% |
 
 </div>
 
+Generate the JaCoCo HTML report:
+```bash
+mvn clean test jacoco:report
+```
+Report location:
+`target/site/jacoco/index.html`
+
 ---
 
-## 🎯 Milestone 1
+## 🎯 Milestone History
 
+### Milestone 1: Java Scraper & Clean Architecture
+- Java 21, Maven, Jsoup, Ports & Adapters, JUnit 5, Mockito, 100% JaCoCo coverage.
+
+### Milestone 2: Java HTTP API & TypeScript Frontend
+- HTTP API, TypeScript + Vite web interface, reactive catalog, search bar.
+
+### Milestone 3: DDD Tactical Patterns & Universal Search
+- Entity with unique identity (`ProductId`), self-validating Value Objects (`record`), pure English repository contract (`ProductRepository`), live universal search across Falabella, product images.
+
+### Milestone 4: Spring Boot Microservice, JPA/PostgreSQL, Error Advice & OpenAPI
 | Requirement | Status |
 |---|:---:|
-| Java 21 | ✅ |
-| Maven project | ✅ |
-| Jsoup | ✅ |
-| Product extraction | ✅ |
-| Clean Architecture | ✅ |
-| Ports and adapters | ✅ |
-| Domain validation | ✅ |
-| Unit tests | ✅ |
-| JUnit 5 | ✅ |
-| Mockito | ✅ |
-| JaCoCo | ✅ |
-| Domain coverage | ✅ 100% |
-| Domain branch coverage | ✅ 100% |
+| **1. REST Endpoints & Error Advice (3-4 Pts)**: Semantic endpoints (`GET`, `POST`, `DELETE`) with `@RestControllerAdvice` returning unified JSON error payloads | ✅ |
+| **2. Real Persistence & Virtualization (3-4 Pts)**: `docker-compose.yml` for PostgreSQL 16, JPA entity mapping (`@Entity`), and `JpaRepository` interface in infrastructure | ✅ |
+| **3. OpenAPI Documentation & Profiles (4 Pts)**: Swagger-UI interactive documentation hermetically restricted to `dev` profile and locked in `prod` | ✅ |
+| **Total Test Suite**: 178 tests with 100% JaCoCo domain line/branch coverage | ✅ |
 
 ---
-
-## 🌐 Milestone 2
-
-During Milestone 2, a web interface was added to consume the products obtained by the scraper, together with a lightweight HTTP API on the Java backend.
-
-### Frontend
-
-Built using:
-
-- TypeScript
-- Vite
-- HTML5
-- CSS
-- TypeScript strict mode
-
-The frontend includes:
-
-- A typed product model
-- Components to represent products
-- Asynchronous consumption of the API (`async`/`await`)
-- Error handling via `try`/`catch`
-- HTTP response validation
-- Validation of the data received from the API
-- Loading state
-- Empty state
-- Error messages
-- Dynamic rendering
-- Search by product name
-- Form handling using `preventDefault()`
-
-### API
-
-A lightweight HTTP API was added in Java to serve the products to the frontend.
-
-Main endpoint:
-
-```text
-GET /api/products
-```
-
-The API returns the products in JSON format.
-
-### 🔎 Search
-
-The application includes a search bar that filters the products loaded from the API.
-
-The search is performed on the product name.
-
-```text
-User types
-      ↓
-Form
-      ↓
-preventDefault()
-      ↓
-Filter products
-      ↓
-Render results
-```
-
-### ✅ Milestone 2 Status
-
-| Requirement | Status |
-|---|:---:|
-| TypeScript | ✅ |
-| Vite | ✅ |
-| TypeScript strict mode | ✅ |
-| Typed model | ✅ |
-| DOM manipulation | ✅ |
-| DOM element validation | ✅ |
-| Form handling | ✅ |
-| `preventDefault()` | ✅ |
-| `async`/`await` | ✅ |
-| `try`/`catch` | ✅ |
-| `response.ok` validation | ✅ |
-| API data validation | ✅ |
-| Loading state | ✅ |
-| Error state | ✅ |
-| Empty state | ✅ |
-| Dynamic rendering | ✅ |
-| Product search | ✅ |
-| Frontend components | ✅ |
-| Java HTTP API | ✅ |
-| Frontend/API integration | ✅ |
-| Production build | ✅ |
-
-> **Note:** The visual interface is deliberately kept simple in this milestone. The main goal was to correctly implement the communication between the TypeScript frontend and the Java backend, along with the required states, validations and functionality.
-
-### 📌 Quick verification
-
-**Backend**
-
-```bash
-mvn clean test
-mvn exec:java "-Dexec.mainClass=org.diegoreyes.webscraper.api.ProductApiApplication"
-```
-
-**Frontend**
-
-In another terminal:
-
-```bash
-cd frontend
-npm install
-npm run build
-npm run dev
-```
-
-Finally, open:
-
-```text
-http://localhost:5173
-```
-
-The page should display the products retrieved from `/api/products` and allow searching by name.
-
----
-
-## 💻 Current Output
-
-The scraper prints each product in a readable format.
-
-Example:
-
-```text
-Products found: 27
-
-Store: Falabella
-Name: Notebook Lenovo LOQ
-Price: $699.990
-Discount: -17%
-Source URL: Not available
-```
-
-The number of products and their information depend on the HTML returned by Falabella at execution time.
-
----
-
-## 🌟 Project Vision
-
-The long-term goal of WebScraper is to evolve from a single-store scraper into a complete product and price intelligence platform.
-
-The platform is intended to collect, store, compare and analyze products from multiple online retailers.
-
-Users will eventually be able to:
-
-- Explore products from different categories
-- Search and filter available products
-- Compare prices across multiple stores
-- Review historical price changes
-- Identify genuine discounts
-- Discover the best current offers
-- Receive intelligent product recommendations
-
----
-
-## 🗺️ Future Improvements
-
-### 🔍 General Scraping
-
-- Support any Falabella product category.
-- Allow users to provide any compatible category URL.
-- Automatically discover and process products from category pages.
-- Add pagination support.
-- Extract product page URLs.
-- Extract product image URLs.
-- Extract additional product specifications.
-- Improve parser resilience against HTML structure changes.
-- Prevent duplicated products in the final result.
-
-### 💾 Data Persistence
-
-- Integrate a relational database.
-- Persist products and store information.
-- Maintain a complete price history for every product.
-- Register the date and time of each detected price.
-- Detect price increases and reductions.
-- Identify the lowest historical price.
-- Avoid duplicate records during repeated scraping operations.
-
-### 🌱 Web Platform Enhancements
-
-- Migrate the application entry point to Spring Boot.
-- Add category and store filters.
-- Add price-based sorting.
-- Display richer product details.
-- Show price-history charts.
-- Create dashboards with product and market statistics.
-- Improve the visual design of the frontend.
-
-### 🏪 Multi-Store Comparison
-
-- Add scrapers for additional e-commerce websites.
-- Normalize products collected from different stores.
-- Identify equivalent products across retailers.
-- Compare prices between stores.
-- Automatically highlight the best available offer.
-- Generate product rankings based on prices and discounts.
-- Track availability and stock when possible.
-
-### 🤖 Artificial Intelligence
-
-- Integrate AI-powered product recommendations.
-- Suggest alternatives according to price and characteristics.
-- Analyze historical price behavior.
-- Detect potentially misleading discounts.
-- Identify relevant buying opportunities.
-- Generate summaries of product characteristics.
-- Recommend products based on user preferences.
-- Provide intelligent insights for purchasing decisions.
-
----
-
-## 👨‍💻 Author
 
 <div align="center">
 
+## 👨‍💻 Author
+
 **Diego Reyes**
 
-Developed as a Java web scraping project focused on software architecture, automated testing and future scalability, later extended with a TypeScript + Vite frontend to visualize the scraped data.
+WebScraper Enterprise Microservice developed with Java 21, Spring Boot 3, Clean Architecture, PostgreSQL, Docker Compose, and OpenAPI 3.
 
 </div>

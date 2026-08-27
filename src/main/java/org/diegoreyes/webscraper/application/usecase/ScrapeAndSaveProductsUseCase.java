@@ -14,7 +14,7 @@ import java.util.Objects;
  * Use case that orchestrates scraping products from a web page
  * and persisting them into the domain ProductRepository.
  */
-public final class ScrapeAndSaveProductsUseCase {
+public class ScrapeAndSaveProductsUseCase {
 
     private final HtmlClient htmlClient;
     private final ProductParser productParser;

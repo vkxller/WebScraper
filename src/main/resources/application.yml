@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: webscraper-service
+  profiles:
+    active: dev
+
+server:
+  port: 8080
+
+cors:
+  allowed-origins: "http://localhost:5173,http://localhost:3000"

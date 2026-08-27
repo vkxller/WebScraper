@@ -1,0 +1,20 @@
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/webscraper_db}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:postgrespassword}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+# Swagger UI & OpenAPI documentation strictly disabled in PROD profile
+springdoc:
+  swagger-ui:
+    enabled: false
+  api-docs:
+    enabled: false

@@ -14,7 +14,7 @@ import java.util.Objects;
  * Application service that coordinates scraping operations and repository persistence.
  * Uses constructor injection to decouple application logic from infrastructure implementations.
  */
-public final class ProductScraperService {
+public class ProductScraperService {
 
     private final HtmlClient htmlClient;
     private final ProductParser productParser;

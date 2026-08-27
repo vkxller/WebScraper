@@ -9,7 +9,7 @@ import java.util.Objects;
 /**
  * Use case to retrieve all persisted products from the domain repository.
  */
-public final class GetAllProductsUseCase {
+public class GetAllProductsUseCase {
 
     private final ProductRepository productRepository;
 

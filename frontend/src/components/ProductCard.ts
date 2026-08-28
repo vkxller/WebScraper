@@ -4,12 +4,11 @@ export function generateProductCardHtml(
     product: Product
 ): string {
 
-    const rawUrl =
-        product.sourceUrl !== null && product.sourceUrl !== undefined && product.sourceUrl.trim().length > 0
-            ? product.sourceUrl.trim()
-            : `https://www.falabella.com/falabella-cl/search?Ntt=${encodeURIComponent(product.name)}`;
+    const hasUrl =
+        product.sourceUrl !== null && product.sourceUrl !== undefined && product.sourceUrl.trim().length > 0;
 
-    const cleanUrl = escapeHtml(rawUrl);
+    const cleanUrl =
+        hasUrl ? escapeHtml(product.sourceUrl!.trim()) : "";
 
     const imageHtml =
         product.imageUrl === null || product.imageUrl.trim().length === 0
@@ -46,6 +45,24 @@ export function generateProductCardHtml(
         </span>
       `;
 
+    const buttonHtml =
+        hasUrl
+            ? `
+        <a
+          href="${cleanUrl}"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="btn-product"
+        >
+          Ver en ${escapeHtml(product.store)} ↗
+        </a>
+      `
+            : `
+        <span class="btn-product btn-product--disabled">
+          Enlace no disponible
+        </span>
+      `;
+
     return `
     <article class="product-card">
       <div class="card-image-wrapper">
@@ -69,14 +86,7 @@ export function generateProductCardHtml(
           ${previousPrice}
         </div>
 
-        <a
-          href="${cleanUrl}"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="btn-product"
-        >
-          Ver en ${escapeHtml(product.store)} ↗
-        </a>
+        ${buttonHtml}
       </div>
     </article>
   `;

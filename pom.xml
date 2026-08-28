@@ -84,11 +84,11 @@
       <version>${jsoup.version}</version>
     </dependency>
 
-    <!-- H2 in-memory Database for isolated tests -->
+    <!-- H2 in-memory Database for isolated tests and dev fallback -->
     <dependency>
       <groupId>com.h2database</groupId>
       <artifactId>h2</artifactId>
-      <scope>test</scope>
+      <scope>runtime</scope>
     </dependency>
 
     <!-- Spring Boot Test Starter (JUnit 5, Mockito, AssertJ, Spring MVC Test) -->
